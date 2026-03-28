@@ -150,7 +150,12 @@ footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;fo
 
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────────────────────
-const PROXY = 'https://corsproxy.io/?url=';
+// Multiple proxies — tried in order, first success wins
+const PROXIES = [
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  u => 'https://corsproxy.io/?url='          + encodeURIComponent(u),
+  u => 'https://thingproxy.freeboard.io/fetch/' + u,
+];
 const API2  = 'https://api2.splinterlands.com';
 const API1  = 'https://api.splinterlands.io';
 
@@ -204,12 +209,21 @@ function log(...a){
 }
 
 // ── FETCH ──────────────────────────────────────────────────────────────────────
-async function apiFetch(url){
-  const r = await fetch(PROXY+encodeURIComponent(url));
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  const txt = await r.text();
-  try{ return JSON.parse(txt); }
-  catch(e){ throw new Error('Bad JSON: '+txt.slice(0,100)); }
+// Try each proxy in turn; return parsed JSON on first success
+async function apiFetch(url, silent=false){
+  let lastErr = '';
+  for(const proxy of PROXIES){
+    try{
+      const proxyUrl = proxy(url);
+      const r = await fetch(proxyUrl, {signal: AbortSignal.timeout(12000)});
+      if(!r.ok){ lastErr='HTTP '+r.status+' via '+proxyUrl.split('?')[0]; continue; }
+      const txt = await r.text();
+      if(!txt||txt==='null'||txt==='undefined'){ lastErr='Empty response'; continue; }
+      try{ return JSON.parse(txt); }
+      catch(e){ lastErr='Bad JSON: '+txt.slice(0,80); continue; }
+    }catch(e){ lastErr=e.message; }
+  }
+  throw new Error(lastErr||'All proxies failed for: '+url);
 }
 
 // ── CARD DATABASE ──────────────────────────────────────────────────────────────
@@ -261,32 +275,25 @@ function pluckPlayers(d){
 // ── BATTLE HISTORY ─────────────────────────────────────────────────────────────
 let battleLogDone = false;
 async function getBattles(player){
-  const urls = [
-    API2+'/battle/history?player='+encodeURIComponent(player)+'&limit=50',
-    API1+'/battle/history?player='+encodeURIComponent(player)+'&limit=50',
-    API2+'/battle/history?username='+encodeURIComponent(player)+'&limit=50',
-  ];
-  for(const url of urls){
-    try{
-      const d = await apiFetch(url);
-      // Log the very first response shape we see
-      if(!battleLogDone){
-        battleLogDone=true;
-        log('=== BATTLE RESPONSE SAMPLE (player: '+player+') ===');
-        log('Type: '+(Array.isArray(d)?'array len='+d.length:typeof d));
-        if(d && typeof d==='object' && !Array.isArray(d)) log('Keys: '+Object.keys(d).join(', '));
-        const battles = Array.isArray(d)?d:(d&&Array.isArray(d.battles)?d.battles:[]);
-        log('Battles found: '+battles.length);
-        if(battles.length>0){
-          log('Battle[0] keys: '+Object.keys(battles[0]).join(', '));
-          if(battles[0].details) log('details type: '+typeof battles[0].details);
-        }
+  const url = API2+'/battle/history?player='+encodeURIComponent(player)+'&limit=50';
+  try{
+    const d = await apiFetch(url);
+    if(!battleLogDone){
+      battleLogDone=true;
+      log('=== BATTLE SAMPLE ('+player+') ===');
+      log('Type: '+(Array.isArray(d)?'array['+d.length+']':typeof d));
+      if(d&&typeof d==='object'&&!Array.isArray(d)) log('Keys: '+Object.keys(d).join(', '));
+      const arr=Array.isArray(d)?d:(d?.battles||[]);
+      log('Battles: '+arr.length);
+      if(arr[0]){
+        log('Battle keys: '+Object.keys(arr[0]).join(', '));
+        if(arr[0].details) log('details type: '+typeof arr[0].details+' sample: '+String(arr[0].details).slice(0,120));
       }
-      if(Array.isArray(d)) return d;
-      if(d&&Array.isArray(d.battles)) return d.battles;
-    }catch(e){
-      if(!battleLogDone){ battleLogDone=true; log('Battle fetch err ('+url+'): '+e.message); }
     }
+    if(Array.isArray(d)) return d;
+    if(d&&Array.isArray(d.battles)) return d.battles;
+  }catch(e){
+    if(!battleLogDone){ battleLogDone=true; log('Battle FAIL ('+player+'): '+e.message); }
   }
   return [];
 }
