@@ -259,13 +259,34 @@ function pluckPlayers(d){
 }
 
 // ── BATTLE HISTORY ─────────────────────────────────────────────────────────────
+let battleLogDone = false;
 async function getBattles(player){
-  for(const base of [API2,API1]){
+  const urls = [
+    API2+'/battle/history?player='+encodeURIComponent(player)+'&limit=50',
+    API1+'/battle/history?player='+encodeURIComponent(player)+'&limit=50',
+    API2+'/battle/history?username='+encodeURIComponent(player)+'&limit=50',
+  ];
+  for(const url of urls){
     try{
-      const d = await apiFetch(base+'/battle/history?player='+encodeURIComponent(player)+'&limit=50');
+      const d = await apiFetch(url);
+      // Log the very first response shape we see
+      if(!battleLogDone){
+        battleLogDone=true;
+        log('=== BATTLE RESPONSE SAMPLE (player: '+player+') ===');
+        log('Type: '+(Array.isArray(d)?'array len='+d.length:typeof d));
+        if(d && typeof d==='object' && !Array.isArray(d)) log('Keys: '+Object.keys(d).join(', '));
+        const battles = Array.isArray(d)?d:(d&&Array.isArray(d.battles)?d.battles:[]);
+        log('Battles found: '+battles.length);
+        if(battles.length>0){
+          log('Battle[0] keys: '+Object.keys(battles[0]).join(', '));
+          if(battles[0].details) log('details type: '+typeof battles[0].details);
+        }
+      }
       if(Array.isArray(d)) return d;
       if(d&&Array.isArray(d.battles)) return d.battles;
-    }catch(e){ /* try next */ }
+    }catch(e){
+      if(!battleLogDone){ battleLogDone=true; log('Battle fetch err ('+url+'): '+e.message); }
+    }
   }
   return [];
 }
@@ -326,7 +347,7 @@ function parseBattle(b, debugOnce){
 // ── MAIN LOAD ──────────────────────────────────────────────────────────────────
 async function loadData(){
   if(busy) return;
-  busy=true; dbgBuf=[];
+  busy=true; dbgBuf=[]; battleLogDone=false;
   const btn=document.getElementById('loadBtn');
   btn.disabled=true; btn.textContent='⏳ Loading…';
   setStatus('loading','Working…');
