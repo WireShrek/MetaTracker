@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splinterlands Meta Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b0f; --bg2:#0f1118; --bg3:#141720; --border:#1c2233; --border2:#252f45;
+  --gold:#c9a227; --gold2:#f0c84a; --text:#cdd8ef; --text2:#6b80a8; --text3:#323f5a;
+  --fire:#ff5e3a; --water:#3ab8ff; --earth:#6bcb5f; --life:#f7e96b;
+  --death:#b56ef5; --dragon:#ff9b3a; --neutral:#8ea8c3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 35% at 50% -5%,rgba(201,162,39,.07) 0%,transparent 60%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
+header{border-bottom:1px solid var(--border);padding:20px 0;background:linear-gradient(180deg,rgba(201,162,39,.05),transparent)}
+.hrow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.logo{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold2);text-shadow:0 0 24px rgba(240,200,74,.35)}
+.logo small{display:block;font-family:'Rajdhani',sans-serif;font-size:10px;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
+.statusbar{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:600;letter-spacing:.06em}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s,box-shadow .3s}
+.dot.live{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.6)}
+.dot.loading{background:var(--gold);box-shadow:0 0 8px rgba(201,162,39,.6);animation:blink 1s infinite}
+.dot.err{background:var(--fire)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.leagues{display:flex;gap:6px;padding:18px 0 0;flex-wrap:wrap}
+.lb{padding:7px 16px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;position:relative}
+.lb::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lc,#fff);transform:scaleX(0);transition:transform .2s}
+.lb.on{color:var(--lc);border-color:var(--lc);box-shadow:0 0 10px -4px var(--lc)}
+.lb.on::after,.lb:hover::after{transform:scaleX(1)}
+.lb[data-l="champion"]{--lc:#e879a0}.lb[data-l="diamond"]{--lc:#7dd3f7}.lb[data-l="gold"]{--lc:#f0c84a}.lb[data-l="silver"]{--lc:#8ea8c3}.lb[data-l="bronze"]{--lc:#cd7f32}
+.srow{display:flex;gap:12px;padding:16px 0 0;flex-wrap:wrap}
+.spill{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 16px;min-width:110px}
+.spill .v{font-size:20px;font-weight:700;line-height:1}
+.spill .l{font-size:10px;color:var(--text2);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.prog{padding:14px 0 0;display:none}
+.prog.on{display:block}
+.pbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .35s;width:0}
+.ptxt{font-size:11px;color:var(--text2);letter-spacing:.04em}
+.dbg{background:#0d1017;border:1px solid var(--border);border-radius:5px;margin:14px 0 0;padding:10px 14px;font-size:11px;color:#5a7a5a;font-family:monospace;max-height:160px;overflow-y:auto;white-space:pre-wrap;display:none}
+.dbg.on{display:block}
+.dbgtoggle{font-size:11px;color:var(--text3);cursor:pointer;text-decoration:underline dotted}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-top:20px}
+.tb{padding:9px 22px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+.tb:hover{color:var(--text)}.tb.on{color:var(--gold2);border-bottom-color:var(--gold2)}
+.panels{display:flex;gap:20px;margin-top:20px;flex-wrap:wrap}
+.panel{flex:1;min-width:290px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.ph{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.pc{font-size:11px;color:var(--text2)}
+.sf{display:flex;gap:5px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;min-height:40px}
+.sfb{padding:3px 9px;border-radius:3px;border:1px solid transparent;background:transparent;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s}
+.sfb:hover{background:rgba(255,255,255,.04)}.sfb.on{border-color:currentColor;background:rgba(255,255,255,.05)}
+.cl{padding:6px 0;max-height:560px;overflow-y:auto}
+.cl::-webkit-scrollbar{width:4px}.cl::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.ci{display:flex;align-items:center;gap:10px;padding:8px 18px;transition:background .12s}
+.ci:hover{background:rgba(255,255,255,.025)}
+.rk{font-size:11px;font-weight:700;color:var(--text3);width:20px;text-align:right;flex-shrink:0}
+.rk.t3{color:var(--gold)}
+.ico{width:34px;height:34px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ci-info{flex:1;min-width:0}
+.cn{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs{font-size:11px;color:var(--text2);margin-top:1px;display:flex;align-items:center;gap:4px}
+.sd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.bw{width:80px;flex-shrink:0}
+.bbg{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:3px}
+.bf{height:100%;border-radius:2px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.bp{font-size:12px;font-weight:700;text-align:right}
+.cu{font-size:11px;color:var(--text2);width:48px;text-align:right;flex-shrink:0}
+.st{padding:48px 20px;text-align:center;color:var(--text2);font-size:13px}
+.spin{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{background:rgba(255,94,58,.07);border:1px solid rgba(255,94,58,.2);border-radius:5px;padding:12px 16px;margin:10px 18px;font-size:12px;color:#ff8a6b;line-height:1.5}
+.loadrow{text-align:center;padding:24px 0 0}
+.loadbtn{padding:12px 36px;background:var(--bg3);border:1px solid var(--gold);border-radius:4px;color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 0 18px -8px var(--gold)}
+.loadbtn:hover{box-shadow:0 0 28px -4px var(--gold)}.loadbtn:disabled{opacity:.5;cursor:not-allowed}
+.loadnote{font-size:11px;color:var(--text3);margin-top:7px}
+footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;font-size:11px;color:var(--text3)}
+@media(max-width:680px){.panels{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="logo">Splinterlands <small>Meta Tracker · Archons &amp; Units</small></div>
+      <div class="statusbar">
+        <div class="dot" id="dot"></div>
+        <span id="stxt">Ready</span>
+        &nbsp;
+        <span class="dbgtoggle" onclick="document.getElementById('dbg').classList.toggle('on')">debug</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="leagues">
+    <button class="lb on" data-l="champion" onclick="pick('champion')">⚔ Champion</button>
+    <button class="lb" data-l="diamond"  onclick="pick('diamond')">💎 Diamond</button>
+    <button class="lb" data-l="gold"     onclick="pick('gold')">🥇 Gold</button>
+    <button class="lb" data-l="silver"   onclick="pick('silver')">🥈 Silver</button>
+    <button class="lb" data-l="bronze"   onclick="pick('bronze')">🥉 Bronze</button>
+  </div>
+
+  <div class="srow">
+    <div class="spill"><div class="v" id="sBattles">—</div><div class="l">Battles</div></div>
+    <div class="spill"><div class="v" id="sPlayers">—</div><div class="l">Players</div></div>
+    <div class="spill"><div class="v" id="sUnits">—</div><div class="l">Unique Units</div></div>
+    <div class="spill"><div class="v" id="sTop">—</div><div class="l">Top Archon</div></div>
+  </div>
+
+  <div class="prog" id="prog">
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <div class="ptxt" id="ptxt">Starting…</div>
+  </div>
+
+  <div class="dbg" id="dbg"></div>
+
+  <div class="tabs">
+    <button class="tb on" id="tbBoth"   onclick="setTab('both')">Both</button>
+    <button class="tb"    id="tbArchon" onclick="setTab('archon')">Archons</button>
+    <button class="tb"    id="tbUnit"   onclick="setTab('unit')">Units</button>
+  </div>
+
+  <div class="panels">
+    <div class="panel" id="pArchon">
+      <div class="ph"><div class="pt">⚡ Archons / Summoners</div><div class="pc" id="cArchon"></div></div>
+      <div class="sf" id="sfArchon"></div>
+      <div class="cl" id="lArchon"><div class="st"><div class="spin"></div>Pick a league &amp; hit Load</div></div>
+    </div>
+    <div class="panel" id="pUnit">
+      <div class="ph"><div class="pt">🗡 Units / Monsters</div><div class="pc" id="cUnit"></div></div>
+      <div class="sf" id="sfUnit"></div>
+      <div class="cl" id="lUnit"><div class="st"><div class="spin"></div>Pick a league &amp; hit Load</div></div>
+    </div>
+  </div>
+
+  <div class="loadrow">
+    <button class="loadbtn" id="loadBtn" onclick="loadData()">⚔ Load Meta Data</button>
+    <div class="loadnote">Samples top 100 players · ~50 battles each · may take 30–90 sec</div>
+  </div>
+</div>
+
+<footer><div class="wrap">Data via Splinterlands public API · Not affiliated with Splinterlands</div></footer>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────────
+const PROXY = 'https://corsproxy.io/?url=';
+const API2  = 'https://api2.splinterlands.com';
+const API1  = 'https://api.splinterlands.io';
+
+const LEAGUE_CFG = {
+  champion:{ lb:0 }, diamond:{ lb:1 }, gold:{ lb:2 }, silver:{ lb:3 }, bronze:{ lb:4 }
+};
+
+const COLOR_TO_SP = {
+  Red:'fire', Blue:'water', Green:'earth', White:'life',
+  Black:'death', Gold:'dragon', Gray:'neutral', Purple:'death'
+};
+
+const SP_CFG = {
+  fire:   {label:'Fire',   color:'#ff5e3a', e:'🔥'},
+  water:  {label:'Water',  color:'#3ab8ff', e:'💧'},
+  earth:  {label:'Earth',  color:'#6bcb5f', e:'🌿'},
+  life:   {label:'Life',   color:'#f7e96b', e:'✨'},
+  death:  {label:'Death',  color:'#b56ef5', e:'💀'},
+  dragon: {label:'Dragon', color:'#ff9b3a', e:'🐉'},
+  neutral:{label:'Neutral',color:'#8ea8c3', e:'⚪'},
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let curLeague = 'champion';
+let cardDB = {};
+let archonData = [], unitData = [];
+let sfA = 'all', sfU = 'all';
+let busy = false;
+
+// ── UI HELPERS ─────────────────────────────────────────────────────────────────
+function pick(l){ curLeague=l; document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('on',b.dataset.l===l)); }
+
+function setTab(t){
+  ['both','archon','unit'].forEach(x=>{
+    document.getElementById('tb'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('on',x===t);
+  });
+  document.getElementById('pArchon').style.display = t==='unit'   ? 'none':'';
+  document.getElementById('pUnit').style.display   = t==='archon' ? 'none':'';
+}
+
+function setStatus(cls,msg){ document.getElementById('dot').className='dot '+cls; document.getElementById('stxt').textContent=msg; }
+function setProgress(pct,msg){ document.getElementById('prog').classList.add('on'); document.getElementById('pfill').style.width=pct+'%'; if(msg) document.getElementById('ptxt').textContent=msg; }
+function hideProgress(){ document.getElementById('prog').classList.remove('on'); }
+
+const dbgEl = document.getElementById('dbg');
+let dbgBuf = [];
+function log(...a){
+  const s=a.join(' ');
+  dbgBuf.push(s); if(dbgBuf.length>300) dbgBuf.shift();
+  dbgEl.textContent=dbgBuf.join('\n'); dbgEl.scrollTop=dbgEl.scrollHeight;
+}
+
+// ── FETCH ──────────────────────────────────────────────────────────────────────
+async function apiFetch(url){
+  const r = await fetch(PROXY+encodeURIComponent(url));
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const txt = await r.text();
+  try{ return JSON.parse(txt); }
+  catch(e){ throw new Error('Bad JSON: '+txt.slice(0,100)); }
+}
+
+// ── CARD DATABASE ──────────────────────────────────────────────────────────────
+async function loadCardDB(){
+  for(const base of [API2, API1]){
+    try{
+      const d = await apiFetch(base+'/cards/get_details');
+      if(!Array.isArray(d)||!d.length) continue;
+      d.forEach(c=>{
+        cardDB[String(c.id)] = {
+          name: c.name,
+          splinter: COLOR_TO_SP[c.color] || (c.color ? c.color.toLowerCase() : 'neutral'),
+          type: (c.type||'').toLowerCase(),
+        };
+      });
+      log('CardDB: '+Object.keys(cardDB).length+' cards from '+base);
+      return;
+    }catch(e){ log('CardDB fail ('+base+'): '+e.message); }
+  }
+}
+
+// ── LEADERBOARD ────────────────────────────────────────────────────────────────
+async function getPlayers(lbId){
+  const attempts = [
+    API2+'/players/leaderboard_with_battles?leaderboard='+lbId+'&limit=100&offset=0',
+    API1+'/players/leaderboard_with_battles?leaderboard='+lbId+'&limit=100',
+    API2+'/players/leaderboard?leaderboard='+lbId+'&limit=100',
+  ];
+  for(const url of attempts){
+    try{
+      log('LB: '+url);
+      const d = await apiFetch(url);
+      const list = pluckPlayers(d);
+      if(list.length){ log('Got '+list.length+' players'); return list; }
+      log('Empty response');
+    }catch(e){ log('LB err: '+e.message); }
+  }
+  return [];
+}
+
+function pluckPlayers(d){
+  if(Array.isArray(d)) return d.map(p=>p.player||p.username||p.name).filter(Boolean);
+  for(const key of ['players','leaderboard','data','results']){
+    if(d&&Array.isArray(d[key])) return d[key].map(p=>p.player||p.username||p.name).filter(Boolean);
+  }
+  return [];
+}
+
+// ── BATTLE HISTORY ─────────────────────────────────────────────────────────────
+async function getBattles(player){
+  for(const base of [API2,API1]){
+    try{
+      const d = await apiFetch(base+'/battle/history?player='+encodeURIComponent(player)+'&limit=50');
+      if(Array.isArray(d)) return d;
+      if(d&&Array.isArray(d.battles)) return d.battles;
+    }catch(e){ /* try next */ }
+  }
+  return [];
+}
+
+// ── PARSE A SINGLE BATTLE ──────────────────────────────────────────────────────
+function parseBattle(b, debugOnce){
+  // The "details" field is a JSON string containing team1/team2
+  let det = b.details;
+  if(typeof det==='string'){ try{ det=JSON.parse(det); }catch(e){ det=null; } }
+
+  // Also try top-level team1/team2
+  const sources = [];
+  if(det&&det.team1) sources.push(det.team1);
+  if(det&&det.team2) sources.push(det.team2);
+  if(!sources.length){
+    let t1=b.team1, t2=b.team2;
+    if(typeof t1==='string'){ try{t1=JSON.parse(t1);}catch(e){t1=null;} }
+    if(typeof t2==='string'){ try{t2=JSON.parse(t2);}catch(e){t2=null;} }
+    if(t1) sources.push(t1);
+    if(t2) sources.push(t2);
+  }
+
+  if(debugOnce){
+    log('=== BATTLE SAMPLE ===');
+    log('Keys: '+Object.keys(b).join(', '));
+    log('details type: '+(typeof b.details));
+    if(det) log('det keys: '+Object.keys(det).join(', '));
+    if(sources[0]){
+      log('team keys: '+Object.keys(sources[0]).join(', '));
+      if(sources[0].summoner) log('summoner: '+JSON.stringify(sources[0].summoner).slice(0,100));
+      if(sources[0].monsters&&sources[0].monsters[0]) log('monster[0]: '+JSON.stringify(sources[0].monsters[0]).slice(0,100));
+    }
+  }
+
+  const out = [];
+  for(const team of sources){
+    if(!team) continue;
+    // summoner
+    const s = team.summoner;
+    if(s){
+      const id = String(s.card_detail_id||s.id||'');
+      const info = cardDB[id];
+      out.push({ type:'summoner', name: info?info.name:(s.name||'Archon#'+id||'?'), splinter: info?info.splinter:'neutral' });
+    }
+    // monsters
+    const mons = team.monsters||[];
+    for(const m of mons){
+      if(!m) continue;
+      const id = String(m.card_detail_id||m.id||'');
+      if(!id||id==='0'||id==='undefined') continue;
+      const info = cardDB[id];
+      out.push({ type:'monster', name: info?info.name:(m.name||'Unit#'+id), splinter: info?info.splinter:'neutral' });
+    }
+  }
+  return out;
+}
+
+// ── MAIN LOAD ──────────────────────────────────────────────────────────────────
+async function loadData(){
+  if(busy) return;
+  busy=true; dbgBuf=[];
+  const btn=document.getElementById('loadBtn');
+  btn.disabled=true; btn.textContent='⏳ Loading…';
+  setStatus('loading','Working…');
+
+  ['lArchon','lUnit'].forEach(id=>document.getElementById(id).innerHTML='<div class="st"><div class="spin"></div>Fetching…</div>');
+  ['sfArchon','sfUnit'].forEach(id=>document.getElementById(id).innerHTML='');
+
+  const cfg = LEAGUE_CFG[curLeague];
+  try{
+    setProgress(3,'Loading card database…');
+    if(!Object.keys(cardDB).length) await loadCardDB();
+
+    setProgress(8,'Fetching leaderboard…');
+    let players = await getPlayers(cfg.lb);
+    if(!players.length){ log('Using fallback player list'); players=FALLBACK_PLAYERS; }
+    const total = Math.min(players.length,100);
+    log('Total players to fetch: '+total);
+
+    const counts = {summoner:{}, monster:{}};
+    let totalBattles=0, done=0, parsed=0, debugDone=false;
+
+    const CONC=5;
+    for(let i=0;i<total;i+=CONC){
+      const batch=players.slice(i,i+CONC);
+      const all=await Promise.allSettled(batch.map(p=>getBattles(p)));
+      for(const res of all){
+        done++;
+        const battles = res.status==='fulfilled'?res.value:[];
+        for(const b of battles){
+          totalBattles++;
+          const useDebug = !debugDone && totalBattles===1;
+          const cards=parseBattle(b, useDebug);
+          if(useDebug) debugDone=true;
+          if(cards.length) parsed++;
+          for(const {type,name,splinter} of cards){
+            const bkt=type==='summoner'?'summoner':'monster';
+            if(!counts[bkt][name]) counts[bkt][name]={count:0,splinter};
+            counts[bkt][name].count++;
+          }
+        }
+      }
+      setProgress(12+Math.round(done/total*83),`${done}/${total} players · ${totalBattles} battles · ${parsed} with cards`);
+    }
+
+    log(`Finished: battles=${totalBattles} parsed=${parsed} summoners=${Object.keys(counts.summoner).length} monsters=${Object.keys(counts.monster).length}`);
+
+    archonData=Object.entries(counts.summoner).map(([n,d])=>({name:n,count:d.count,splinter:d.splinter})).sort((a,b)=>b.count-a.count);
+    unitData  =Object.entries(counts.monster) .map(([n,d])=>({name:n,count:d.count,splinter:d.splinter})).sort((a,b)=>b.count-a.count);
+
+    if(!archonData.length&&!unitData.length){
+      ['lArchon','lUnit'].forEach(id=>document.getElementById(id).innerHTML=`<div class="err-box">⚠ No card data could be parsed.<br>This usually means the Splinterlands API returned battles in a different format than expected.<br>Click <b>debug</b> (top right) to see the raw API response structure.</div>`);
+      dbgEl.classList.add('on');
+      setStatus('err','No data — check debug log');
+    } else {
+      const tA=archonData.reduce((s,c)=>s+c.count,0);
+      const tU=unitData.reduce((s,c)=>s+c.count,0);
+      renderList('lArchon',archonData,tA,sfA='all');
+      renderList('lUnit',  unitData,  tU,sfU='all');
+      renderFilters('sfArchon',archonData,'A');
+      renderFilters('sfUnit',  unitData,  'U');
+      document.getElementById('cArchon').textContent=archonData.length+' unique';
+      document.getElementById('cUnit').textContent=unitData.length+' unique';
+      document.getElementById('sBattles').textContent=totalBattles.toLocaleString();
+      document.getElementById('sPlayers').textContent=done;
+      document.getElementById('sUnits').textContent=unitData.length;
+      document.getElementById('sTop').textContent=archonData[0]?.name?.split(' ').slice(-1)[0]||'—';
+      setStatus('live',curLeague+' · '+totalBattles+' battles');
+    }
+    hideProgress();
+  }catch(e){
+    log('FATAL: '+e.message+'\n'+e.stack);
+    ['lArchon','lUnit'].forEach(id=>document.getElementById(id).innerHTML=`<div class="err-box">❌ ${e.message}</div>`);
+    dbgEl.classList.add('on');
+    setStatus('err','Error');
+    hideProgress();
+  }
+  busy=false; btn.disabled=false; btn.textContent='🔄 Refresh';
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function renderList(elId,data,total,filter){
+  const el=document.getElementById(elId);
+  const fd=filter==='all'?data:data.filter(d=>d.splinter===filter);
+  if(!fd.length){el.innerHTML='<div class="st">No data for this filter</div>';return;}
+  const mx=fd[0].count;
+  el.innerHTML=fd.slice(0,60).map((item,i)=>{
+    const pct=total>0?(item.count/total*100).toFixed(1):0;
+    const bar=Math.round(item.count/mx*100);
+    const sp=SP_CFG[item.splinter]||SP_CFG.neutral;
+    const rk=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    return `<div class="ci">
+      <div class="rk${i<3?' t3':''}">${rk}</div>
+      <div class="ico">${sp.e}</div>
+      <div class="ci-info">
+        <div class="cn">${item.name}</div>
+        <div class="cs"><span class="sd" style="background:${sp.color}"></span>${sp.label}</div>
+      </div>
+      <div class="bw">
+        <div class="bbg"><div class="bf" style="width:${bar}%;background:${sp.color}70;border-right:2px solid ${sp.color}"></div></div>
+        <div class="bp" style="color:${sp.color}">${pct}%</div>
+      </div>
+      <div class="cu">${item.count.toLocaleString()}</div>
+    </div>`;
+  }).join('')+(fd.length>60?`<div style="padding:10px;font-size:11px;color:var(--text3);text-align:center">+${fd.length-60} more</div>`:'');
+}
+
+function renderFilters(elId,data,prefix){
+  const el=document.getElementById(elId);
+  const counts={};
+  data.forEach(d=>{counts[d.splinter]=(counts[d.splinter]||0)+d.count;});
+  const total=data.reduce((s,c)=>s+c.count,0);
+  const cur=prefix==='A'?sfA:sfU;
+  const rows=[['all','All','#8ea8c3','⚡',total]];
+  for(const [sp,cfg] of Object.entries(SP_CFG)){
+    if(counts[sp]) rows.push([sp,cfg.label,cfg.color,cfg.e,counts[sp]]);
+  }
+  el.innerHTML=rows.map(([key,label,color,e,cnt])=>`
+    <button class="sfb${cur===key?' on':''}" style="color:${color}" onclick="filterSp('${prefix}','${key}')">
+      ${e} ${label} <span style="opacity:.45">(${cnt.toLocaleString()})</span>
+    </button>`).join('');
+}
+
+function filterSp(prefix,sp){
+  if(prefix==='A'){
+    sfA=sp;
+    renderList('lArchon',archonData,archonData.reduce((s,c)=>s+c.count,0),sp);
+    renderFilters('sfArchon',archonData,'A');
+  } else {
+    sfU=sp;
+    renderList('lUnit',unitData,unitData.reduce((s,c)=>s+c.count,0),sp);
+    renderFilters('sfUnit',unitData,'U');
+  }
+}
+
+// ── FALLBACK PLAYERS ───────────────────────────────────────────────────────────
+const FALLBACK_PLAYERS = [
+  'jacekw','sm-voter','abrockman','nateaguila','nedbold','monkeymind95','flauwy',
+  'sosandesu','kalkulus','tcpolymath','marianaemilia','bulldog1205','aggroed',
+  'yabapmatt','clove71','freedompoint','beeyou','dewabrata','rishi556','solaito',
+  'koodies','shoemanchu','gank','darthgexe','solymi','drabs587','imno',
+  'cryptoeater','gerber','monsterjamgold','underlock','hardaeborla',
+  'libertycrypto27','brontojosef','monsterbuster','mango-juice','michupa',
+  'captaincryptic','epicdice','isaria','doomhammermonk','alexis666',
+  'tnarbopoulos','meesterboom','rentmoney','azzury','jarvie','khimeria',
+  'masterthematrix','gillianpearce','cryptkeeper95','mordikkio','dagger-jack',
+  'atnafu','reazuliqbal','stamato','monsterjamgold','nateaguila',
+];
+</script>
+</body>
+</html>
