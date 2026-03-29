@@ -1,5 +1,4 @@
 const https = require('https');
-
 let cardCache = null;
 
 module.exports = async function handler(req, res) {
@@ -9,7 +8,6 @@ module.exports = async function handler(req, res) {
   const { ids } = req.query;
   if (!ids) return res.status(400).json({ error: 'ids required' });
 
-  const wantedIds = new Set(ids.split(',').map(s => parseInt(s.trim())).filter(Boolean));
   const colorMap = {
     Red:'fire', Blue:'water', Green:'earth', White:'life',
     Black:'death', Gold:'dragon', Gray:'neutral', Purple:'death'
@@ -23,25 +21,34 @@ module.exports = async function handler(req, res) {
           path: '/cards/get_details',
           method: 'GET',
           headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-          timeout: 20000,
+          timeout: 25000,
         };
         const r = https.request(options, (response) => {
           let data = '';
           response.on('data', chunk => data += chunk);
           response.on('end', () => {
             try { resolve(JSON.parse(data)); }
-            catch(e) { reject(new Error('JSON parse failed: ' + data.slice(0,100))); }
+            catch(e) { cardCache = null; reject(new Error('parse failed')); }
           });
         });
         r.on('timeout', () => { r.destroy(); reject(new Error('timeout')); });
-        r.on('error', reject);
+        r.on('error', (e) => { reject(e); });
         r.end();
       });
     }
 
-    const result = cardCache
-      .filter(c => wantedIds.has(c.id))
-      .map(c => ({ id: c.id, name: c.name, splinter: colorMap[c.color] || 'neutral' }));
+    const wantedIds = ids === 'all'
+      ? null
+      : new Set(ids.split(',').map(s => parseInt(s.trim())).filter(Boolean));
+
+    const result = (wantedIds
+      ? cardCache.filter(c => wantedIds.has(c.id))
+      : cardCache
+    ).map(c => ({
+      id: c.id,
+      name: c.name,
+      splinter: colorMap[c.color] || 'neutral'
+    }));
 
     res.status(200).json(result);
   } catch(e) {
