@@ -221,7 +221,6 @@ var CARDS = {
 // ================================================================
 function fetchUnknownCards(unknownIds) {
   if(!unknownIds.length) return Promise.resolve();
-  // Fetch in batches of 50
   var batches = [];
   for(var i=0; i<unknownIds.length; i+=50){
     batches.push(unknownIds.slice(i,i+50));
@@ -234,11 +233,15 @@ function fetchUnknownCards(unknownIds) {
           data.forEach(function(c){
             if(c && c.id && c.name){
               CARDS[String(c.id)] = {n: c.name, s: c.splinter || 'neutral'};
+              log('Card resolved: '+c.id+' = '+c.name+' ('+c.splinter+')');
             }
           });
+          log('Resolved '+data.length+' card names from API');
+        } else {
+          log('Card API returned: '+JSON.stringify(data).slice(0,100));
         }
       })
-      .catch(function(){});
+      .catch(function(e){ log('Card fetch error: '+e.message); });
   }));
 }
 
@@ -354,47 +357,46 @@ function parseBattle(b){
   var p1 = b.player_1;
   var p2 = b.player_2;
 
-  function extractCardId(uid){
+  // UID: "C{edition}-{card_detail_id}-{HASH}-{player_name}"
+  // card_detail_id = parts[1], player = everything after the 3rd hyphen
+  function parseUid(uid){
     if(!uid || typeof uid !== 'string') return null;
-    var parts = uid.split('-');
-    // Parts: [edition, card_detail_id, uid_hash..., player]
-    // card_detail_id is always the second segment (index 1)
-    if(parts.length >= 2){
-      var cid = parts[1];
-      if(cid && /^\d+$/.test(cid)) return cid;
-    }
-    return null;
-  }
-
-  function getPlayerFromUid(uid){
-    if(!uid || typeof uid !== 'string') return null;
-    var parts = uid.split('-');
-    // Player name is the last segment
-    return parts[parts.length - 1] || null;
+    var m = uid.match(/^C\d+-([0-9]+)-[A-Z0-9]+-(.+)$/);
+    if(!m) return null;
+    return {cid: m[1], player: m[2]};
   }
 
   det.rounds.forEach(function(round){
     (round.actions||[]).forEach(function(action){
-      [action.initiator, action.target].forEach(function(uid){
+      // Summoner casts buff on round 0; initiator of buff = summoner
+      var isSummonerAction = action.type === 'buff';
+
+      [action.initiator, action.target].forEach(function(uid, idx){
         if(!uid) return;
-        var cid = extractCardId(uid);
+        var parsed = parseUid(uid);
+        if(!parsed) return;
+        var cid = parsed.cid;
+        var player = parsed.player;
         if(!cid || cid === '0') return;
-        var player = getPlayerFromUid(uid);
-        var isTeam1 = player === p1;
-        var isTeam2 = player === p2;
 
-        // Summoner detection: summoners apply buffs, type starts with 'buff' or action has no damage
-        var isSummoner = action.type === 'buff' || action.type === 'summoner_buff';
+        // Determine team
+        var isP1 = (player === p1);
+        var isP2 = (player === p2);
+        // For hyphenated player names, check if p1/p2 ends with the parsed player
+        if(!isP1 && !isP2){
+          isP1 = p1 && p1.indexOf(player) >= 0;
+          isP2 = p2 && p2.indexOf(player) >= 0;
+        }
 
-        if(isTeam1){
+        // Summoner: initiator (idx=0) of a buff action
+        var isSummoner = isSummonerAction && idx === 0;
+
+        if(isP1){
           if(isSummoner){ if(!team1.summoner) team1.summoner = cid; }
           else team1.monsters[cid] = true;
-        } else if(isTeam2){
+        } else if(isP2){
           if(isSummoner){ if(!team2.summoner) team2.summoner = cid; }
           else team2.monsters[cid] = true;
-        } else {
-          // Fallback: just record it
-          team1.monsters[cid] = true;
         }
       });
     });
