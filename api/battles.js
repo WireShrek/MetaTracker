@@ -2,6 +2,38 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
+  const { player } = req.query;
+  if (!player) return res.status(400).json({ error: 'player required' });
+
+  try {
+    const token = process.env.SPL_TOKEN;
+    
+    if (!token) {
+      return res.status(500).json({ error: 'SPL_TOKEN not set in environment' });
+    }
+
+    const url = `https://api2.splinterlands.com/battle/history?player=${encodeURIComponent(player)}&limit=50`;
+
+    const r = await fetch(url, {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+      }
+    });
+
+    const text = await r.text();
+    return res.status(200).json({ 
+      status: r.status, 
+      url: url,
+      body: text.slice(0, 500) 
+    });
+
+  } catch (e) {
+    return res.status(500).json({ error: e.message, stack: e.stack });
+  }
+}export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Content-Type', 'application/json');
+
   const { player, limit } = req.query;
   if (!player) return res.status(400).json({ error: 'player required' });
 
