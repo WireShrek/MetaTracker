@@ -36,7 +36,7 @@ header{border-bottom:1px solid var(--border);padding:20px 0;background:linear-gr
 .pbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px}
 .pfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .35s;width:0}
 .ptxt{font-size:11px;color:var(--text2)}
-.dbg{background:#0d1017;border:1px solid var(--border);border-radius:5px;margin:14px 0 0;padding:10px 14px;font-size:11px;color:#5a9a5a;font-family:monospace;max-height:200px;overflow-y:auto;white-space:pre-wrap;display:none}
+.dbg{background:#0d1017;border:1px solid var(--border);border-radius:5px;margin:14px 0 0;padding:10px 14px;font-size:11px;color:#5a9a5a;font-family:monospace;max-height:220px;overflow-y:auto;white-space:pre-wrap;display:none}
 .dbg.on{display:block}
 .tabs{display:flex;border-bottom:1px solid var(--border);margin-top:20px}
 .tb{padding:9px 22px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:-1px}
@@ -55,7 +55,7 @@ header{border-bottom:1px solid var(--border);padding:20px 0;background:linear-gr
 .ci:hover{background:rgba(255,255,255,.025)}
 .rk{font-size:11px;font-weight:700;color:var(--text3);width:24px;text-align:right;flex-shrink:0}
 .rk.t3{color:var(--gold)}
-.ico{width:34px;height:34px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ico{width:34px;height:34px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
 .ci-info{flex:1;min-width:0}
 .cn{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cs{font-size:11px;color:var(--text2);margin-top:1px;display:flex;align-items:center;gap:4px}
@@ -69,6 +69,7 @@ header{border-bottom:1px solid var(--border);padding:20px 0;background:linear-gr
 .spin{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err-box{background:rgba(255,94,58,.07);border:1px solid rgba(255,94,58,.2);border-radius:5px;padding:12px 16px;margin:10px 18px;font-size:12px;color:#ff8a6b;line-height:1.6}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(125,211,247,.12);color:var(--diamond);border:1px solid rgba(125,211,247,.25);margin-left:8px;vertical-align:middle}
 .loadrow{text-align:center;padding:24px 0 0}
 .loadbtn{padding:12px 36px;background:var(--bg3);border:1px solid var(--gold);border-radius:4px;color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 0 18px -8px var(--gold)}
 .loadbtn:hover{box-shadow:0 0 28px -4px var(--gold)}.loadbtn:disabled{opacity:.5;cursor:not-allowed}
@@ -81,7 +82,7 @@ footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;fo
 <header>
   <div class="wrap">
     <div class="hrow">
-      <div class="logo">Splinterlands <small>Meta Tracker &middot; Archons &amp; Units</small></div>
+      <div class="logo">Splinterlands <small>Meta Tracker &middot; Modern Format</small></div>
       <div class="statusbar">
         <div class="dot" id="dot"></div>
         <span id="stxt">Ready</span>
@@ -116,466 +117,37 @@ footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;fo
   </div>
   <div class="panels">
     <div class="panel" id="pArchon">
-      <div class="ph"><div class="pt">Archons / Summoners</div><div class="pc" id="cArchon"></div></div>
+      <div class="ph">
+        <div class="pt">Archons / Summoners <span class="badge">Modern</span></div>
+        <div class="pc" id="cArchon"></div>
+      </div>
       <div class="sf" id="sfArchon"></div>
       <div class="cl" id="lArchon"><div class="st"><div class="spin"></div>Pick a league and hit Load</div></div>
     </div>
     <div class="panel" id="pUnit">
-      <div class="ph"><div class="pt">Units / Monsters</div><div class="pc" id="cUnit"></div></div>
+      <div class="ph">
+        <div class="pt">Units / Monsters <span class="badge">Modern</span></div>
+        <div class="pc" id="cUnit"></div>
+      </div>
       <div class="sf" id="sfUnit"></div>
       <div class="cl" id="lUnit"><div class="st"><div class="spin"></div>Pick a league and hit Load</div></div>
     </div>
   </div>
   <div class="loadrow">
     <button class="loadbtn" id="loadBtn" onclick="loadData()">Load Meta Data</button>
-    <div class="loadnote">Fetches battle data directly from Hive blockchain &mdash; no login needed</div>
+    <div class="loadnote">Modern format only &mdash; data from Hive blockchain &mdash; no login needed</div>
   </div>
 </div>
-<footer><div class="wrap">Data via Hive blockchain &amp; Splinterlands APIs &mdash; Not affiliated with Splinterlands</div></footer>
+<footer><div class="wrap">Modern format only &mdash; data via Hive blockchain &mdash; Not affiliated with Splinterlands</div></footer>
 
 <script>
 (function(){
 'use strict';
 
 // ================================================================
-// CARD DATABASE - embedded, no network fetch needed
-// id -> {n:name, s:splinter, t:type(summoner|monster)}
+// EMBEDDED CARD DATABASE (433 cards, no network needed)
 // ================================================================
-var CARDS = {
-"1":{"n":"Goblin Shaman","s":"fire","t":"monster"},
-"2":{"n":"Serpentine Soldier","s":"fire","t":"monster"},
-"3":{"n":"Cerberus","s":"fire","t":"monster"},
-"4":{"n":"Pit Ogre","s":"fire","t":"monster"},
-"5":{"n":"Fire Demon","s":"fire","t":"monster"},
-"6":{"n":"Kobold Miner","s":"fire","t":"monster"},
-"7":{"n":"Elemental Phoenix","s":"fire","t":"monster"},
-"8":{"n":"Lyanna Natura","s":"earth","t":"summoner"},
-"9":{"n":"Stonesplitter Orc","s":"earth","t":"monster"},
-"10":{"n":"Flesh Golem","s":"earth","t":"monster"},
-"11":{"n":"Swamp Thing","s":"earth","t":"monster"},
-"12":{"n":"Wood Nymph","s":"earth","t":"monster"},
-"13":{"n":"Centaur","s":"earth","t":"monster"},
-"14":{"n":"Stone Golem","s":"earth","t":"monster"},
-"15":{"n":"Earth Elemental","s":"earth","t":"monster"},
-"16":{"n":"Failed Summoner","s":"earth","t":"monster"},
-"17":{"n":"Goblin Sorcerer","s":"earth","t":"monster"},
-"18":{"n":"Minotaur Warrior","s":"earth","t":"monster"},
-"19":{"n":"Mushroom Seer","s":"earth","t":"monster"},
-"20":{"n":"Stonesplitter Orc","s":"earth","t":"monster"},
-"21":{"n":"Tyrus Paladium","s":"life","t":"summoner"},
-"22":{"n":"Peacebringer","s":"life","t":"monster"},
-"23":{"n":"Divine Healer","s":"life","t":"monster"},
-"24":{"n":"Silvershield Assassin","s":"life","t":"monster"},
-"25":{"n":"Silvershield Warrior","s":"life","t":"monster"},
-"26":{"n":"Feral Spirit","s":"life","t":"monster"},
-"27":{"n":"Truthspeaker","s":"life","t":"monster"},
-"28":{"n":"Armorsmith","s":"life","t":"monster"},
-"29":{"n":"Luminous Eagle","s":"life","t":"monster"},
-"30":{"n":"Temple Priest","s":"life","t":"monster"},
-"31":{"n":"Lone Boatman","s":"water","t":"monster"},
-"32":{"n":"Pirate Archer","s":"water","t":"monster"},
-"33":{"n":"Prismatic Energy","s":"water","t":"monster"},
-"34":{"n":"Spineback Turtle","s":"water","t":"monster"},
-"35":{"n":"Ice Pixie","s":"water","t":"monster"},
-"36":{"n":"Crustacean King","s":"water","t":"monster"},
-"37":{"n":"Kelp Initiate","s":"water","t":"monster"},
-"38":{"n":"Sea Monster","s":"water","t":"monster"},
-"39":{"n":"Medusa","s":"water","t":"monster"},
-"40":{"n":"Naga Windmaster","s":"water","t":"monster"},
-"41":{"n":"Undead Badger","s":"death","t":"monster"},
-"42":{"n":"Haunted Spider","s":"death","t":"monster"},
-"43":{"n":"Undead Priest","s":"death","t":"monster"},
-"44":{"n":"Skeleton Assassin","s":"death","t":"monster"},
-"45":{"n":"Twisted Jester","s":"death","t":"monster"},
-"46":{"n":"Phantasm","s":"death","t":"monster"},
-"47":{"n":"Screaming Banshee","s":"death","t":"monster"},
-"48":{"n":"Haunted Spirit","s":"death","t":"monster"},
-"49":{"n":"Dark Ferryman","s":"death","t":"monster"},
-"50":{"n":"Bone Golem","s":"death","t":"monster"},
-"51":{"n":"Zintar Mortalis","s":"death","t":"summoner"},
-"52":{"n":"Selenia Sky","s":"dragon","t":"summoner"},
-"53":{"n":"Gold Dragon","s":"dragon","t":"monster"},
-"54":{"n":"Gloridax Guardian","s":"dragon","t":"monster"},
-"55":{"n":"Dragon Jumper","s":"dragon","t":"monster"},
-"56":{"n":"Gloridax Magus","s":"dragon","t":"monster"},
-"57":{"n":"Magi Sphinx","s":"dragon","t":"monster"},
-"58":{"n":"Fire Spitter","s":"dragon","t":"monster"},
-"59":{"n":"Whelp Herder","s":"dragon","t":"monster"},
-"60":{"n":"Naga Fire Wizard","s":"dragon","t":"monster"},
-"61":{"n":"Pyre","s":"fire","t":"summoner"},
-"62":{"n":"Living Lava","s":"fire","t":"monster"},
-"63":{"n":"Flame Imp","s":"fire","t":"monster"},
-"64":{"n":"Magma Troll","s":"fire","t":"monster"},
-"65":{"n":"Exploding Dwarf","s":"fire","t":"monster"},
-"66":{"n":"Molten Ogre","s":"fire","t":"monster"},
-"67":{"n":"Spark Pixies","s":"fire","t":"monster"},
-"68":{"n":"Fire Elemental","s":"fire","t":"monster"},
-"69":{"n":"Ferexia General","s":"fire","t":"monster"},
-"70":{"n":"Naga Fire Wizard","s":"fire","t":"monster"},
-"71":{"n":"Alric Stormbringer","s":"water","t":"summoner"},
-"72":{"n":"Frozen Soldier","s":"water","t":"monster"},
-"73":{"n":"Ruler of the Seas","s":"water","t":"monster"},
-"74":{"n":"Mermaid Healer","s":"water","t":"monster"},
-"75":{"n":"Pirate Captain","s":"water","t":"monster"},
-"76":{"n":"Wave Brood","s":"water","t":"monster"},
-"77":{"n":"Feasting Seaweed","s":"water","t":"monster"},
-"78":{"n":"Torhilo the Frozen","s":"water","t":"monster"},
-"79":{"n":"Water Elemental","s":"water","t":"monster"},
-"80":{"n":"Biceratops","s":"earth","t":"monster"},
-"81":{"n":"Rexxie","s":"earth","t":"monster"},
-"82":{"n":"Goblin Chef","s":"earth","t":"monster"},
-"83":{"n":"Goblin Thief","s":"earth","t":"monster"},
-"84":{"n":"Khmer Princess","s":"earth","t":"monster"},
-"85":{"n":"Unicorn Mustang","s":"earth","t":"monster"},
-"86":{"n":"Grund","s":"earth","t":"monster"},
-"87":{"n":"Queen Mycelia","s":"earth","t":"monster"},
-"88":{"n":"Fungus Fiend","s":"earth","t":"monster"},
-"89":{"n":"Halfling Alchemist","s":"earth","t":"monster"},
-"90":{"n":"Daria Dragonscale","s":"dragon","t":"summoner"},
-"91":{"n":"Manticore","s":"dragon","t":"monster"},
-"92":{"n":"Lord Arianthus","s":"neutral","t":"monster"},
-"93":{"n":"Cocatrice","s":"dragon","t":"monster"},
-"94":{"n":"Brighton Bloom","s":"dragon","t":"summoner"},
-"95":{"n":"Kretch Tallevor","s":"fire","t":"summoner"},
-"96":{"n":"Malric Inferno","s":"fire","t":"summoner"},
-"97":{"n":"Chanseus the Great","s":"life","t":"summoner"},
-"98":{"n":"Mother Khala","s":"life","t":"summoner"},
-"99":{"n":"Delwyn Dragonscale","s":"dragon","t":"summoner"},
-"100":{"n":"Valnamor","s":"water","t":"summoner"},
-"101":{"n":"Owster Rotwell","s":"death","t":"summoner"},
-"102":{"n":"Contessa L'ament","s":"death","t":"summoner"},
-"103":{"n":"Prince Rennyn","s":"earth","t":"summoner"},
-"104":{"n":"Mylor Crowling","s":"earth","t":"summoner"},
-"105":{"n":"Prince Julian","s":"water","t":"summoner"},
-"106":{"n":"Mimosa Nightshade","s":"death","t":"summoner"},
-"107":{"n":"Goblin Mech","s":"neutral","t":"monster"},
-"108":{"n":"Creeping Ooze","s":"neutral","t":"monster"},
-"109":{"n":"Furious Chicken","s":"neutral","t":"monster"},
-"110":{"n":"Peaceful Giant","s":"neutral","t":"monster"},
-"111":{"n":"Prismatic Energy","s":"neutral","t":"monster"},
-"112":{"n":"Failed Summoner","s":"neutral","t":"monster"},
-"113":{"n":"Gelatinous Cube","s":"neutral","t":"monster"},
-"114":{"n":"Phantom Soldier","s":"death","t":"monster"},
-"115":{"n":"Cornealus","s":"neutral","t":"monster"},
-"116":{"n":"Kralus","s":"dragon","t":"monster"},
-"117":{"n":"Sacred Unicorn","s":"life","t":"monster"},
-"118":{"n":"Vampire","s":"death","t":"monster"},
-"119":{"n":"Dhampir Stalker","s":"death","t":"monster"},
-"120":{"n":"Pelacor Bandit","s":"fire","t":"monster"},
-"121":{"n":"Pelacor Conjurer","s":"life","t":"monster"},
-"122":{"n":"Pelacor Deceiver","s":"death","t":"monster"},
-"123":{"n":"Pelacor Mercenary","s":"water","t":"monster"},
-"124":{"n":"Pelacor Arbalest","s":"life","t":"monster"},
-"125":{"n":"Pelacor Descent","s":"dragon","t":"monster"},
-"126":{"n":"Uraeus","s":"neutral","t":"monster"},
-"127":{"n":"Djinn Apprentice","s":"fire","t":"monster"},
-"128":{"n":"Djinn Chwala","s":"dragon","t":"monster"},
-"129":{"n":"Djinn Biljka","s":"water","t":"monster"},
-"130":{"n":"Djinn Renova","s":"life","t":"monster"},
-"131":{"n":"Djinn Oshannus","s":"water","t":"monster"},
-"132":{"n":"Djinn Muraat","s":"neutral","t":"monster"},
-"133":{"n":"Djinn Inferni","s":"fire","t":"monster"},
-"134":{"n":"General Sloan","s":"life","t":"summoner"},
-"135":{"n":"Tarsa","s":"fire","t":"summoner"},
-"136":{"n":"Obsidian","s":"earth","t":"summoner"},
-"137":{"n":"Kelya Frendul","s":"water","t":"summoner"},
-"138":{"n":"Thaddius Brood","s":"death","t":"summoner"},
-"139":{"n":"Lux Vega","s":"neutral","t":"summoner"},
-"140":{"n":"Grandmaster Rathe","s":"life","t":"summoner"},
-"141":{"n":"Quix the Devious","s":"dragon","t":"summoner"},
-"142":{"n":"Possibilus the Wise","s":"water","t":"summoner"},
-"143":{"n":"Conqueror Jacek","s":"fire","t":"summoner"},
-"144":{"n":"Immortalis","s":"death","t":"summoner"},
-"145":{"n":"Lily Shieldpaw","s":"earth","t":"summoner"},
-"146":{"n":"Astral Entity","s":"dragon","t":"summoner"},
-"147":{"n":"Chanseus the Great","s":"life","t":"summoner"},
-"148":{"n":"Runemancer Kye","s":"fire","t":"summoner"},
-"149":{"n":"Runemancer Florre","s":"earth","t":"summoner"},
-"150":{"n":"Runemancer Flund","s":"water","t":"summoner"},
-"151":{"n":"Runemancer Atuat","s":"death","t":"summoner"},
-"152":{"n":"Runemancer Chalice","s":"life","t":"summoner"},
-"153":{"n":"Runemancer Oz","s":"dragon","t":"summoner"},
-"154":{"n":"Lobb Lowland","s":"earth","t":"summoner"},
-"155":{"n":"Waka Spiritblade","s":"death","t":"summoner"},
-"156":{"n":"Fernheart","s":"earth","t":"summoner"},
-"157":{"n":"Runi","s":"neutral","t":"summoner"},
-"158":{"n":"Ragnarok","s":"fire","t":"monster"},
-"159":{"n":"Chaos Agent","s":"neutral","t":"monster"},
-"160":{"n":"Venari Crystalsmith","s":"life","t":"monster"},
-"161":{"n":"Venari Heatsmith","s":"fire","t":"monster"},
-"162":{"n":"Venari Wavesmith","s":"water","t":"monster"},
-"163":{"n":"Venari Marksrat","s":"neutral","t":"monster"},
-"164":{"n":"Venari Seedsmith","s":"earth","t":"monster"},
-"165":{"n":"Venari Bonesmith","s":"death","t":"monster"},
-"166":{"n":"Venari Spellsmith","s":"neutral","t":"monster"},
-"167":{"n":"Antoid Platoon","s":"fire","t":"monster"},
-"168":{"n":"Scavo Hireling","s":"fire","t":"monster"},
-"169":{"n":"Scavo Chemist","s":"fire","t":"monster"},
-"170":{"n":"Scavo Firebolt","s":"fire","t":"monster"},
-"171":{"n":"Tenyii Striker","s":"fire","t":"monster"},
-"172":{"n":"Radiated Brute","s":"fire","t":"monster"},
-"173":{"n":"Radiated Scorcher","s":"fire","t":"monster"},
-"174":{"n":"Radiated Zombie","s":"fire","t":"monster"},
-"175":{"n":"Supply Runner","s":"fire","t":"monster"},
-"176":{"n":"Lava Launcher","s":"fire","t":"monster"},
-"177":{"n":"Chaos Dragon","s":"dragon","t":"monster"},
-"178":{"n":"Naga Assassin","s":"water","t":"monster"},
-"179":{"n":"Deeplurker","s":"water","t":"monster"},
-"180":{"n":"Riverboat Captain","s":"water","t":"monster"},
-"181":{"n":"Coastal Sentry","s":"water","t":"monster"},
-"182":{"n":"Diemonshark","s":"water","t":"monster"},
-"183":{"n":"Angelic Mandarin","s":"water","t":"monster"},
-"184":{"n":"Torrent Fiend","s":"water","t":"monster"},
-"185":{"n":"Axemaster","s":"water","t":"monster"},
-"186":{"n":"Tide Biter","s":"water","t":"monster"},
-"187":{"n":"Nerissa Tridawn","s":"water","t":"monster"},
-"188":{"n":"Merdaali Guardian","s":"water","t":"monster"},
-"189":{"n":"Swamp Spitter","s":"earth","t":"monster"},
-"190":{"n":"Goblin Psychic","s":"earth","t":"monster"},
-"191":{"n":"Mycelic Morphoid","s":"earth","t":"monster"},
-"192":{"n":"Mycelic Infantry","s":"earth","t":"monster"},
-"193":{"n":"Fungus Flinger","s":"earth","t":"monster"},
-"194":{"n":"Regal Peryton","s":"earth","t":"monster"},
-"195":{"n":"Mycelic Slipspawn","s":"earth","t":"monster"},
-"196":{"n":"Thornling","s":"earth","t":"monster"},
-"197":{"n":"Grund","s":"earth","t":"monster"},
-"198":{"n":"Ujurak Elder","s":"earth","t":"monster"},
-"199":{"n":"Chaos Fiend","s":"death","t":"monster"},
-"200":{"n":"Shadowy Presence","s":"death","t":"monster"},
-"201":{"n":"Life Sapper","s":"death","t":"monster"},
-"202":{"n":"Soul Strangler","s":"death","t":"monster"},
-"203":{"n":"Cursed Windeku","s":"death","t":"monster"},
-"204":{"n":"Riftwing","s":"death","t":"monster"},
-"205":{"n":"Nightmare","s":"death","t":"monster"},
-"206":{"n":"Weirding Warrior","s":"death","t":"monster"},
-"207":{"n":"Revealer","s":"death","t":"monster"},
-"208":{"n":"Soulstorm","s":"death","t":"monster"},
-"209":{"n":"Silenced Summoner","s":"neutral","t":"monster"},
-"210":{"n":"Legionnaire Alvar","s":"neutral","t":"monster"},
-"211":{"n":"Xenith Monk","s":"neutral","t":"monster"},
-"212":{"n":"Xenith Archer","s":"neutral","t":"monster"},
-"213":{"n":"Xenith Flanker","s":"neutral","t":"monster"},
-"214":{"n":"Time Mage","s":"neutral","t":"monster"},
-"215":{"n":"Stitch Leech","s":"death","t":"monster"},
-"216":{"n":"Magi of Chaos","s":"neutral","t":"monster"},
-"217":{"n":"Pelacor Conjurer","s":"life","t":"monster"},
-"218":{"n":"Hardy Stonefish","s":"water","t":"monster"},
-"219":{"n":"Swamp Worm","s":"earth","t":"monster"},
-"220":{"n":"Celestial Harpy","s":"life","t":"monster"},
-"221":{"n":"Aerial Gunner","s":"life","t":"monster"},
-"222":{"n":"Chaos Knight","s":"life","t":"monster"},
-"223":{"n":"Shieldbearer","s":"life","t":"monster"},
-"224":{"n":"Evangelist","s":"life","t":"monster"},
-"225":{"n":"Prismologist","s":"life","t":"monster"},
-"226":{"n":"Adelade Brightwing","s":"life","t":"monster"},
-"227":{"n":"Harpy","s":"life","t":"monster"},
-"228":{"n":"Gargoya Lion","s":"neutral","t":"monster"},
-"229":{"n":"Gargoya Devil","s":"neutral","t":"monster"},
-"230":{"n":"Baakjira","s":"water","t":"monster"},
-"231":{"n":"Kulu Swimhunter","s":"water","t":"monster"},
-"232":{"n":"Gargoya Scrapper","s":"neutral","t":"monster"},
-"233":{"n":"Firecaller","s":"fire","t":"monster"},
-"234":{"n":"Grum Flameblade","s":"fire","t":"monster"},
-"235":{"n":"Forgotten One","s":"fire","t":"monster"},
-"236":{"n":"Efreet Elder","s":"fire","t":"monster"},
-"237":{"n":"Chaos Elemental","s":"fire","t":"monster"},
-"238":{"n":"Pyrewatch Devil","s":"fire","t":"monster"},
-"239":{"n":"Harklaw","s":"death","t":"monster"},
-"240":{"n":"Crypt Beetle","s":"death","t":"monster"},
-"241":{"n":"Disintegrator","s":"neutral","t":"monster"},
-"242":{"n":"Naga Brute","s":"water","t":"monster"},
-"243":{"n":"Moxian Rebel","s":"fire","t":"monster"},
-"244":{"n":"Bila the Erdling","s":"earth","t":"monster"},
-"245":{"n":"Dumacke Exile","s":"life","t":"monster"},
-"246":{"n":"Octavia Shadowmeld","s":"death","t":"summoner"},
-"247":{"n":"Lily Shieldpaw","s":"earth","t":"summoner"},
-"248":{"n":"Byzantine Kitty","s":"dragon","t":"summoner"},
-"249":{"n":"Scarred Llama Mage","s":"earth","t":"summoner"},
-"250":{"n":"Yodin Zaku","s":"fire","t":"summoner"},
-"251":{"n":"Dragon Spirit","s":"dragon","t":"monster"},
-"252":{"n":"Junker","s":"neutral","t":"monster"},
-"253":{"n":"Spineback Wolf","s":"earth","t":"monster"},
-"254":{"n":"Flying Squid","s":"water","t":"monster"},
-"255":{"n":"Pelacor Bandit","s":"fire","t":"monster"},
-"256":{"n":"Lensmaster","s":"life","t":"monster"},
-"257":{"n":"Kron the Undying","s":"earth","t":"monster"},
-"258":{"n":"Llama Kron","s":"earth","t":"monster"},
-"259":{"n":"Zyvax Vuul","s":"dragon","t":"monster"},
-"260":{"n":"Chaos Legion Ruleset","s":"neutral","t":"monster"},
-"261":{"n":"Ulundin Overseer","s":"water","t":"monster"},
-"262":{"n":"Musa Saline","s":"water","t":"monster"},
-"263":{"n":"Elven Defender","s":"life","t":"monster"},
-"264":{"n":"Scavo Warrior","s":"fire","t":"monster"},
-"265":{"n":"Noa the Just","s":"water","t":"summoner"},
-"266":{"n":"Tura Nereen","s":"fire","t":"summoner"},
-"267":{"n":"Lobb Lowland","s":"earth","t":"summoner"},
-"268":{"n":"Helios Matriarch","s":"life","t":"summoner"},
-"269":{"n":"Eternal Tofu","s":"neutral","t":"summoner"},
-"270":{"n":"Thane Newsong","s":"death","t":"summoner"},
-"271":{"n":"Ash Mirage","s":"neutral","t":"monster"},
-"272":{"n":"Ava the Undying","s":"neutral","t":"monster"},
-"273":{"n":"Doctor Blight","s":"neutral","t":"monster"},
-"274":{"n":"Sand Worm","s":"neutral","t":"monster"},
-"275":{"n":"Tower Griffin","s":"neutral","t":"monster"},
-"276":{"n":"Carrion Shade","s":"death","t":"monster"},
-"277":{"n":"Undead Rex","s":"death","t":"monster"},
-"278":{"n":"Fiend of Ash","s":"fire","t":"monster"},
-"279":{"n":"Arachne Weaver","s":"neutral","t":"monster"},
-"280":{"n":"Dhampir Stalker","s":"death","t":"monster"},
-"281":{"n":"Mantoid","s":"neutral","t":"monster"},
-"282":{"n":"Sniping Narwhal","s":"water","t":"monster"},
-"283":{"n":"Uriel the Purifier","s":"life","t":"monster"},
-"284":{"n":"Agor Longtail","s":"dragon","t":"monster"},
-"285":{"n":"Runic Skyclaw","s":"dragon","t":"monster"},
-"286":{"n":"Sela Freepath","s":"fire","t":"monster"},
-"287":{"n":"Robo-Dragon Knight","s":"dragon","t":"monster"},
-"288":{"n":"Xander Foxwood","s":"earth","t":"summoner"},
-"289":{"n":"Katrelba Gobson","s":"earth","t":"summoner"},
-"290":{"n":"Isgald Vorst","s":"death","t":"summoner"},
-"291":{"n":"Helios Matriarch","s":"life","t":"summoner"},
-"292":{"n":"Bortus","s":"water","t":"summoner"},
-"293":{"n":"Drybone Raider","s":"death","t":"monster"},
-"294":{"n":"Riftwing","s":"death","t":"monster"},
-"295":{"n":"Sorrento Felblade","s":"death","t":"monster"},
-"296":{"n":"Firecaller","s":"fire","t":"monster"},
-"297":{"n":"Alva the Crusher","s":"earth","t":"monster"},
-"298":{"n":"Chimney Wallstop","s":"neutral","t":"monster"},
-"299":{"n":"Gargoya Devil","s":"neutral","t":"monster"},
-"300":{"n":"Gargoya Scrapper","s":"neutral","t":"monster"},
-"301":{"n":"Chaos Dragon","s":"dragon","t":"monster"},
-"302":{"n":"Baakjira","s":"water","t":"monster"},
-"303":{"n":"Tide Biter","s":"water","t":"monster"},
-"304":{"n":"Coastal Sentry","s":"water","t":"monster"},
-"305":{"n":"Diemonshark","s":"water","t":"monster"},
-"306":{"n":"Kulu Swimhunter","s":"water","t":"monster"},
-"307":{"n":"Ulundin Overseer","s":"water","t":"monster"},
-"308":{"n":"Axemaster","s":"water","t":"monster"},
-"309":{"n":"Nerissa Tridawn","s":"water","t":"monster"},
-"310":{"n":"Angelic Mandarin","s":"water","t":"monster"},
-"311":{"n":"Naga Brute","s":"water","t":"monster"},
-"312":{"n":"Hardy Stonefish","s":"water","t":"monster"},
-"313":{"n":"Flying Squid","s":"water","t":"monster"},
-"314":{"n":"Musa Saline","s":"water","t":"monster"},
-"315":{"n":"Sniping Narwhal","s":"water","t":"monster"},
-"316":{"n":"Fungus Flinger","s":"earth","t":"monster"},
-"317":{"n":"Regal Peryton","s":"earth","t":"monster"},
-"318":{"n":"Mycelic Infantry","s":"earth","t":"monster"},
-"319":{"n":"Mycelic Morphoid","s":"earth","t":"monster"},
-"320":{"n":"Mycelic Slipspawn","s":"earth","t":"monster"},
-"321":{"n":"Goblin Psychic","s":"earth","t":"monster"},
-"322":{"n":"Swamp Spitter","s":"earth","t":"monster"},
-"323":{"n":"Ujurak Elder","s":"earth","t":"monster"},
-"324":{"n":"Bila the Erdling","s":"earth","t":"monster"},
-"325":{"n":"Alva the Crusher","s":"earth","t":"monster"},
-"326":{"n":"Spineback Wolf","s":"earth","t":"monster"},
-"327":{"n":"Chaos Knight","s":"life","t":"monster"},
-"328":{"n":"Shieldbearer","s":"life","t":"monster"},
-"329":{"n":"Evangelist","s":"life","t":"monster"},
-"330":{"n":"Adelade Brightwing","s":"life","t":"monster"},
-"331":{"n":"Prismologist","s":"life","t":"monster"},
-"332":{"n":"Aerial Gunner","s":"life","t":"monster"},
-"333":{"n":"Celestial Harpy","s":"life","t":"monster"},
-"334":{"n":"Lensmaster","s":"life","t":"monster"},
-"335":{"n":"Dumacke Exile","s":"life","t":"monster"},
-"336":{"n":"Elven Defender","s":"life","t":"monster"},
-"337":{"n":"Venari Crystalsmith","s":"life","t":"monster"},
-"338":{"n":"Harklaw","s":"death","t":"monster"},
-"339":{"n":"Cursed Windeku","s":"death","t":"monster"},
-"340":{"n":"Riftwing","s":"death","t":"monster"},
-"341":{"n":"Soul Strangler","s":"death","t":"monster"},
-"342":{"n":"Life Sapper","s":"death","t":"monster"},
-"343":{"n":"Stitch Leech","s":"death","t":"monster"},
-"344":{"n":"Crypt Beetle","s":"death","t":"monster"},
-"345":{"n":"Sorrento Felblade","s":"death","t":"monster"},
-"346":{"n":"Drybone Raider","s":"death","t":"monster"},
-"347":{"n":"Undead Rex","s":"death","t":"monster"},
-"348":{"n":"Carrion Shade","s":"death","t":"monster"},
-"349":{"n":"Dhampir Stalker","s":"death","t":"monster"},
-"350":{"n":"Weirding Warrior","s":"death","t":"monster"},
-"351":{"n":"Chaos Agent","s":"neutral","t":"monster"},
-"352":{"n":"Xenith Monk","s":"neutral","t":"monster"},
-"353":{"n":"Xenith Archer","s":"neutral","t":"monster"},
-"354":{"n":"Xenith Flanker","s":"neutral","t":"monster"},
-"355":{"n":"Time Mage","s":"neutral","t":"monster"},
-"356":{"n":"Disintegrator","s":"neutral","t":"monster"},
-"357":{"n":"Legionnaire Alvar","s":"neutral","t":"monster"},
-"358":{"n":"Magi of Chaos","s":"neutral","t":"monster"},
-"359":{"n":"Gargoya Lion","s":"neutral","t":"monster"},
-"360":{"n":"Gargoya Devil","s":"neutral","t":"monster"},
-"361":{"n":"Gargoya Scrapper","s":"neutral","t":"monster"},
-"362":{"n":"Tower Griffin","s":"neutral","t":"monster"},
-"363":{"n":"Chimney Wallstop","s":"neutral","t":"monster"},
-"364":{"n":"Arachne Weaver","s":"neutral","t":"monster"},
-"365":{"n":"Mantoid","s":"neutral","t":"monster"},
-"366":{"n":"Antoid Platoon","s":"fire","t":"monster"},
-"367":{"n":"Tenyii Striker","s":"fire","t":"monster"},
-"368":{"n":"Radiated Brute","s":"fire","t":"monster"},
-"369":{"n":"Radiated Scorcher","s":"fire","t":"monster"},
-"370":{"n":"Radiated Zombie","s":"fire","t":"monster"},
-"371":{"n":"Supply Runner","s":"fire","t":"monster"},
-"372":{"n":"Lava Launcher","s":"fire","t":"monster"},
-"373":{"n":"Djinn Apprentice","s":"fire","t":"monster"},
-"374":{"n":"Djinn Inferni","s":"fire","t":"monster"},
-"375":{"n":"Grum Flameblade","s":"fire","t":"monster"},
-"376":{"n":"Efreet Elder","s":"fire","t":"monster"},
-"377":{"n":"Chaos Elemental","s":"fire","t":"monster"},
-"378":{"n":"Venari Heatsmith","s":"fire","t":"monster"},
-"379":{"n":"Forgotten One","s":"fire","t":"monster"},
-"380":{"n":"Pyrewatch Devil","s":"fire","t":"monster"},
-"381":{"n":"Pelacor Bandit","s":"fire","t":"monster"},
-"382":{"n":"Sela Freepath","s":"fire","t":"monster"},
-"383":{"n":"Scavo Firebolt","s":"fire","t":"monster"},
-"384":{"n":"Scavo Hireling","s":"fire","t":"monster"},
-"385":{"n":"Scavo Chemist","s":"fire","t":"monster"},
-"386":{"n":"Scavo Warrior","s":"fire","t":"monster"},
-"387":{"n":"Firecaller","s":"fire","t":"monster"},
-"388":{"n":"Deeplurker","s":"water","t":"monster"},
-"389":{"n":"Riverboat Captain","s":"water","t":"monster"},
-"390":{"n":"Naga Assassin","s":"water","t":"monster"},
-"391":{"n":"Venari Wavesmith","s":"water","t":"monster"},
-"392":{"n":"Djinn Biljka","s":"water","t":"monster"},
-"393":{"n":"Djinn Oshannus","s":"water","t":"monster"},
-"394":{"n":"Torrent Fiend","s":"water","t":"monster"},
-"395":{"n":"Merdaali Guardian","s":"water","t":"monster"},
-"396":{"n":"Pelacor Mercenary","s":"water","t":"monster"},
-"397":{"n":"Regal Peryton","s":"earth","t":"monster"},
-"398":{"n":"Venari Seedsmith","s":"earth","t":"monster"},
-"399":{"n":"Swamp Worm","s":"earth","t":"monster"},
-"400":{"n":"Pelacor Conjurer","s":"life","t":"monster"},
-"401":{"n":"Pelacor Arbalest","s":"life","t":"monster"},
-"402":{"n":"Venari Crystalsmith","s":"life","t":"monster"},
-"403":{"n":"Pelacor Deceiver","s":"death","t":"monster"},
-"404":{"n":"Venari Bonesmith","s":"death","t":"monster"},
-"405":{"n":"Pelacor Descent","s":"dragon","t":"monster"},
-"406":{"n":"Djinn Chwala","s":"dragon","t":"monster"},
-"407":{"n":"Agor Longtail","s":"dragon","t":"monster"},
-"408":{"n":"Runic Skyclaw","s":"dragon","t":"monster"},
-"409":{"n":"Robo-Dragon Knight","s":"dragon","t":"monster"},
-"410":{"n":"Uraeus","s":"neutral","t":"monster"},
-"411":{"n":"Venari Marksrat","s":"neutral","t":"monster"},
-"412":{"n":"Venari Spellsmith","s":"neutral","t":"monster"},
-"413":{"n":"Djinn Muraat","s":"neutral","t":"monster"},
-"414":{"n":"Chaos Fiend","s":"death","t":"monster"},
-"415":{"n":"Shadowy Presence","s":"death","t":"monster"},
-"416":{"n":"Revealer","s":"death","t":"monster"},
-"417":{"n":"Nightmare","s":"death","t":"monster"},
-"418":{"n":"Phantom Soldier","s":"death","t":"monster"},
-"419":{"n":"Soulstorm","s":"death","t":"monster"},
-"420":{"n":"Silenced Summoner","s":"neutral","t":"monster"},
-"421":{"n":"Doctor Blight","s":"neutral","t":"monster"},
-"422":{"n":"Sand Worm","s":"neutral","t":"monster"},
-"423":{"n":"Ava the Undying","s":"neutral","t":"monster"},
-"424":{"n":"Ash Mirage","s":"neutral","t":"monster"},
-"425":{"n":"Fiend of Ash","s":"fire","t":"monster"},
-"426":{"n":"Moxian Rebel","s":"fire","t":"monster"},
-"427":{"n":"Dragon Spirit","s":"dragon","t":"monster"},
-"428":{"n":"Zyvax Vuul","s":"dragon","t":"monster"},
-"429":{"n":"Thornling","s":"earth","t":"monster"},
-"430":{"n":"Dumacke Exile","s":"life","t":"monster"},
-"431":{"n":"Uriel the Purifier","s":"life","t":"monster"},
-"432":{"n":"Harpy","s":"life","t":"monster"},
-"433":{"n":"Moxian Rebel","s":"fire","t":"monster"}
-};
+var CARDS = {"1":{"n":"Goblin Shaman","s":"fire"},"2":{"n":"Serpentine Soldier","s":"fire"},"3":{"n":"Cerberus","s":"fire"},"4":{"n":"Pit Ogre","s":"fire"},"5":{"n":"Fire Demon","s":"fire"},"6":{"n":"Kobold Miner","s":"fire"},"7":{"n":"Elemental Phoenix","s":"fire"},"8":{"n":"Lyanna Natura","s":"earth"},"9":{"n":"Stonesplitter Orc","s":"earth"},"10":{"n":"Flesh Golem","s":"earth"},"11":{"n":"Swamp Thing","s":"earth"},"12":{"n":"Wood Nymph","s":"earth"},"13":{"n":"Centaur","s":"earth"},"14":{"n":"Stone Golem","s":"earth"},"15":{"n":"Earth Elemental","s":"earth"},"16":{"n":"Failed Summoner","s":"earth"},"17":{"n":"Goblin Sorcerer","s":"earth"},"18":{"n":"Minotaur Warrior","s":"earth"},"19":{"n":"Mushroom Seer","s":"earth"},"21":{"n":"Tyrus Paladium","s":"life"},"22":{"n":"Peacebringer","s":"life"},"23":{"n":"Divine Healer","s":"life"},"24":{"n":"Silvershield Assassin","s":"life"},"25":{"n":"Silvershield Warrior","s":"life"},"26":{"n":"Feral Spirit","s":"life"},"27":{"n":"Truthspeaker","s":"life"},"28":{"n":"Armorsmith","s":"life"},"29":{"n":"Luminous Eagle","s":"life"},"30":{"n":"Temple Priest","s":"life"},"31":{"n":"Lone Boatman","s":"water"},"32":{"n":"Pirate Archer","s":"water"},"33":{"n":"Prismatic Energy","s":"water"},"34":{"n":"Spineback Turtle","s":"water"},"35":{"n":"Ice Pixie","s":"water"},"36":{"n":"Crustacean King","s":"water"},"37":{"n":"Kelp Initiate","s":"water"},"38":{"n":"Sea Monster","s":"water"},"39":{"n":"Medusa","s":"water"},"40":{"n":"Naga Windmaster","s":"water"},"41":{"n":"Undead Badger","s":"death"},"42":{"n":"Haunted Spider","s":"death"},"43":{"n":"Undead Priest","s":"death"},"44":{"n":"Skeleton Assassin","s":"death"},"45":{"n":"Twisted Jester","s":"death"},"46":{"n":"Phantasm","s":"death"},"47":{"n":"Screaming Banshee","s":"death"},"48":{"n":"Haunted Spirit","s":"death"},"49":{"n":"Dark Ferryman","s":"death"},"50":{"n":"Bone Golem","s":"death"},"51":{"n":"Zintar Mortalis","s":"death"},"52":{"n":"Selenia Sky","s":"dragon"},"53":{"n":"Gold Dragon","s":"dragon"},"54":{"n":"Gloridax Guardian","s":"dragon"},"55":{"n":"Dragon Jumper","s":"dragon"},"56":{"n":"Gloridax Magus","s":"dragon"},"57":{"n":"Magi Sphinx","s":"dragon"},"58":{"n":"Fire Spitter","s":"dragon"},"59":{"n":"Whelp Herder","s":"dragon"},"60":{"n":"Naga Fire Wizard","s":"dragon"},"61":{"n":"Pyre","s":"fire"},"62":{"n":"Living Lava","s":"fire"},"63":{"n":"Flame Imp","s":"fire"},"64":{"n":"Magma Troll","s":"fire"},"65":{"n":"Exploding Dwarf","s":"fire"},"66":{"n":"Molten Ogre","s":"fire"},"67":{"n":"Spark Pixies","s":"fire"},"68":{"n":"Fire Elemental","s":"fire"},"69":{"n":"Ferexia General","s":"fire"},"71":{"n":"Alric Stormbringer","s":"water"},"72":{"n":"Frozen Soldier","s":"water"},"73":{"n":"Ruler of the Seas","s":"water"},"74":{"n":"Mermaid Healer","s":"water"},"75":{"n":"Pirate Captain","s":"water"},"76":{"n":"Wave Brood","s":"water"},"77":{"n":"Feasting Seaweed","s":"water"},"78":{"n":"Torhilo the Frozen","s":"water"},"79":{"n":"Water Elemental","s":"water"},"80":{"n":"Biceratops","s":"earth"},"81":{"n":"Rexxie","s":"earth"},"82":{"n":"Goblin Chef","s":"earth"},"83":{"n":"Goblin Thief","s":"earth"},"84":{"n":"Khmer Princess","s":"earth"},"85":{"n":"Unicorn Mustang","s":"earth"},"86":{"n":"Grund","s":"earth"},"87":{"n":"Queen Mycelia","s":"earth"},"88":{"n":"Fungus Fiend","s":"earth"},"89":{"n":"Halfling Alchemist","s":"earth"},"90":{"n":"Daria Dragonscale","s":"dragon"},"91":{"n":"Manticore","s":"dragon"},"92":{"n":"Lord Arianthus","s":"neutral"},"93":{"n":"Cocatrice","s":"dragon"},"94":{"n":"Brighton Bloom","s":"dragon"},"95":{"n":"Kretch Tallevor","s":"fire"},"96":{"n":"Malric Inferno","s":"fire"},"97":{"n":"Chanseus the Great","s":"life"},"98":{"n":"Mother Khala","s":"life"},"99":{"n":"Delwyn Dragonscale","s":"dragon"},"100":{"n":"Valnamor","s":"water"},"101":{"n":"Owster Rotwell","s":"death"},"102":{"n":"Contessa L'ament","s":"death"},"103":{"n":"Prince Rennyn","s":"earth"},"104":{"n":"Mylor Crowling","s":"earth"},"105":{"n":"Prince Julian","s":"water"},"106":{"n":"Mimosa Nightshade","s":"death"},"107":{"n":"Goblin Mech","s":"neutral"},"108":{"n":"Creeping Ooze","s":"neutral"},"109":{"n":"Furious Chicken","s":"neutral"},"110":{"n":"Peaceful Giant","s":"neutral"},"111":{"n":"Prismatic Energy","s":"neutral"},"112":{"n":"Failed Summoner","s":"neutral"},"113":{"n":"Gelatinous Cube","s":"neutral"},"114":{"n":"Phantom Soldier","s":"death"},"115":{"n":"Cornealus","s":"neutral"},"116":{"n":"Kralus","s":"dragon"},"117":{"n":"Sacred Unicorn","s":"life"},"118":{"n":"Vampire","s":"death"},"119":{"n":"Dhampir Stalker","s":"death"},"120":{"n":"Pelacor Bandit","s":"fire"},"121":{"n":"Pelacor Conjurer","s":"life"},"122":{"n":"Pelacor Deceiver","s":"death"},"123":{"n":"Pelacor Mercenary","s":"water"},"124":{"n":"Pelacor Arbalest","s":"life"},"125":{"n":"Pelacor Descent","s":"dragon"},"126":{"n":"Uraeus","s":"neutral"},"127":{"n":"Djinn Apprentice","s":"fire"},"128":{"n":"Djinn Chwala","s":"dragon"},"129":{"n":"Djinn Biljka","s":"water"},"130":{"n":"Djinn Renova","s":"life"},"131":{"n":"Djinn Oshannus","s":"water"},"132":{"n":"Djinn Muraat","s":"neutral"},"133":{"n":"Djinn Inferni","s":"fire"},"134":{"n":"General Sloan","s":"life"},"135":{"n":"Tarsa","s":"fire"},"136":{"n":"Obsidian","s":"earth"},"137":{"n":"Kelya Frendul","s":"water"},"138":{"n":"Thaddius Brood","s":"death"},"139":{"n":"Lux Vega","s":"neutral"},"140":{"n":"Grandmaster Rathe","s":"life"},"141":{"n":"Quix the Devious","s":"dragon"},"142":{"n":"Possibilus the Wise","s":"water"},"143":{"n":"Conqueror Jacek","s":"fire"},"144":{"n":"Immortalis","s":"death"},"145":{"n":"Lily Shieldpaw","s":"earth"},"146":{"n":"Astral Entity","s":"dragon"},"147":{"n":"Chanseus the Great","s":"life"},"148":{"n":"Runemancer Kye","s":"fire"},"149":{"n":"Runemancer Florre","s":"earth"},"150":{"n":"Runemancer Flund","s":"water"},"151":{"n":"Runemancer Atuat","s":"death"},"152":{"n":"Runemancer Chalice","s":"life"},"153":{"n":"Runemancer Oz","s":"dragon"},"154":{"n":"Lobb Lowland","s":"earth"},"155":{"n":"Waka Spiritblade","s":"death"},"156":{"n":"Fernheart","s":"earth"},"157":{"n":"Runi","s":"neutral"},"159":{"n":"Chaos Agent","s":"neutral"},"160":{"n":"Venari Crystalsmith","s":"life"},"161":{"n":"Venari Heatsmith","s":"fire"},"162":{"n":"Venari Wavesmith","s":"water"},"163":{"n":"Venari Marksrat","s":"neutral"},"164":{"n":"Venari Seedsmith","s":"earth"},"165":{"n":"Venari Bonesmith","s":"death"},"166":{"n":"Venari Spellsmith","s":"neutral"},"167":{"n":"Antoid Platoon","s":"fire"},"168":{"n":"Scavo Hireling","s":"fire"},"169":{"n":"Scavo Chemist","s":"fire"},"170":{"n":"Scavo Firebolt","s":"fire"},"171":{"n":"Tenyii Striker","s":"fire"},"172":{"n":"Radiated Brute","s":"fire"},"173":{"n":"Radiated Scorcher","s":"fire"},"174":{"n":"Radiated Zombie","s":"fire"},"175":{"n":"Supply Runner","s":"fire"},"176":{"n":"Lava Launcher","s":"fire"},"177":{"n":"Chaos Dragon","s":"dragon"},"178":{"n":"Naga Assassin","s":"water"},"179":{"n":"Deeplurker","s":"water"},"180":{"n":"Riverboat Captain","s":"water"},"181":{"n":"Coastal Sentry","s":"water"},"182":{"n":"Diemonshark","s":"water"},"183":{"n":"Angelic Mandarin","s":"water"},"184":{"n":"Torrent Fiend","s":"water"},"185":{"n":"Axemaster","s":"water"},"186":{"n":"Tide Biter","s":"water"},"187":{"n":"Nerissa Tridawn","s":"water"},"188":{"n":"Merdaali Guardian","s":"water"},"189":{"n":"Swamp Spitter","s":"earth"},"190":{"n":"Goblin Psychic","s":"earth"},"191":{"n":"Mycelic Morphoid","s":"earth"},"192":{"n":"Mycelic Infantry","s":"earth"},"193":{"n":"Fungus Flinger","s":"earth"},"194":{"n":"Regal Peryton","s":"earth"},"195":{"n":"Mycelic Slipspawn","s":"earth"},"196":{"n":"Thornling","s":"earth"},"198":{"n":"Ujurak Elder","s":"earth"},"199":{"n":"Chaos Fiend","s":"death"},"200":{"n":"Shadowy Presence","s":"death"},"201":{"n":"Life Sapper","s":"death"},"202":{"n":"Soul Strangler","s":"death"},"203":{"n":"Cursed Windeku","s":"death"},"204":{"n":"Riftwing","s":"death"},"205":{"n":"Nightmare","s":"death"},"206":{"n":"Weirding Warrior","s":"death"},"207":{"n":"Revealer","s":"death"},"208":{"n":"Soulstorm","s":"death"},"209":{"n":"Silenced Summoner","s":"neutral"},"210":{"n":"Legionnaire Alvar","s":"neutral"},"211":{"n":"Xenith Monk","s":"neutral"},"212":{"n":"Xenith Archer","s":"neutral"},"213":{"n":"Xenith Flanker","s":"neutral"},"214":{"n":"Time Mage","s":"neutral"},"215":{"n":"Stitch Leech","s":"death"},"216":{"n":"Magi of Chaos","s":"neutral"},"218":{"n":"Hardy Stonefish","s":"water"},"219":{"n":"Swamp Worm","s":"earth"},"220":{"n":"Celestial Harpy","s":"life"},"221":{"n":"Aerial Gunner","s":"life"},"222":{"n":"Chaos Knight","s":"life"},"223":{"n":"Shieldbearer","s":"life"},"224":{"n":"Evangelist","s":"life"},"225":{"n":"Prismologist","s":"life"},"226":{"n":"Adelade Brightwing","s":"life"},"227":{"n":"Harpy","s":"life"},"228":{"n":"Gargoya Lion","s":"neutral"},"229":{"n":"Gargoya Devil","s":"neutral"},"230":{"n":"Baakjira","s":"water"},"231":{"n":"Kulu Swimhunter","s":"water"},"232":{"n":"Gargoya Scrapper","s":"neutral"},"233":{"n":"Firecaller","s":"fire"},"234":{"n":"Grum Flameblade","s":"fire"},"235":{"n":"Forgotten One","s":"fire"},"236":{"n":"Efreet Elder","s":"fire"},"237":{"n":"Chaos Elemental","s":"fire"},"238":{"n":"Pyrewatch Devil","s":"fire"},"239":{"n":"Harklaw","s":"death"},"240":{"n":"Crypt Beetle","s":"death"},"241":{"n":"Disintegrator","s":"neutral"},"242":{"n":"Naga Brute","s":"water"},"244":{"n":"Bila the Erdling","s":"earth"},"245":{"n":"Dumacke Exile","s":"life"},"246":{"n":"Octavia Shadowmeld","s":"death"},"248":{"n":"Byzantine Kitty","s":"dragon"},"249":{"n":"Scarred Llama Mage","s":"earth"},"250":{"n":"Yodin Zaku","s":"fire"},"252":{"n":"Junker","s":"neutral"},"253":{"n":"Spineback Wolf","s":"earth"},"254":{"n":"Flying Squid","s":"water"},"257":{"n":"Kron the Undying","s":"earth"},"261":{"n":"Ulundin Overseer","s":"water"},"262":{"n":"Musa Saline","s":"water"},"263":{"n":"Elven Defender","s":"life"},"264":{"n":"Scavo Warrior","s":"fire"},"265":{"n":"Noa the Just","s":"water"},"266":{"n":"Tura Nereen","s":"fire"},"267":{"n":"Lobb Lowland","s":"earth"},"268":{"n":"Helios Matriarch","s":"life"},"269":{"n":"Eternal Tofu","s":"neutral"},"270":{"n":"Thane Newsong","s":"death"},"271":{"n":"Ash Mirage","s":"neutral"},"272":{"n":"Ava the Undying","s":"neutral"},"273":{"n":"Doctor Blight","s":"neutral"},"274":{"n":"Sand Worm","s":"neutral"},"275":{"n":"Tower Griffin","s":"neutral"},"276":{"n":"Carrion Shade","s":"death"},"277":{"n":"Undead Rex","s":"death"},"278":{"n":"Fiend of Ash","s":"fire"},"279":{"n":"Arachne Weaver","s":"neutral"},"280":{"n":"Dhampir Stalker","s":"death"},"281":{"n":"Mantoid","s":"neutral"},"282":{"n":"Sniping Narwhal","s":"water"},"283":{"n":"Uriel the Purifier","s":"life"},"284":{"n":"Agor Longtail","s":"dragon"},"285":{"n":"Runic Skyclaw","s":"dragon"},"287":{"n":"Robo-Dragon Knight","s":"dragon"},"288":{"n":"Xander Foxwood","s":"earth"},"289":{"n":"Katrelba Gobson","s":"earth"},"290":{"n":"Isgald Vorst","s":"death"},"291":{"n":"Helios Matriarch","s":"life"},"292":{"n":"Bortus","s":"water"},"293":{"n":"Drybone Raider","s":"death"},"295":{"n":"Sorrento Felblade","s":"death"},"297":{"n":"Alva the Crusher","s":"earth"},"298":{"n":"Chimney Wallstop","s":"neutral"},"326":{"n":"Spineback Wolf","s":"earth"},"338":{"n":"Harklaw","s":"death"},"339":{"n":"Cursed Windeku","s":"death"},"351":{"n":"Chaos Agent","s":"neutral"},"352":{"n":"Xenith Monk","s":"neutral"},"353":{"n":"Xenith Archer","s":"neutral"},"354":{"n":"Xenith Flanker","s":"neutral"},"355":{"n":"Time Mage","s":"neutral"},"356":{"n":"Disintegrator","s":"neutral"},"357":{"n":"Legionnaire Alvar","s":"neutral"},"358":{"n":"Magi of Chaos","s":"neutral"},"359":{"n":"Gargoya Lion","s":"neutral"},"360":{"n":"Gargoya Devil","s":"neutral"},"361":{"n":"Gargoya Scrapper","s":"neutral"},"362":{"n":"Tower Griffin","s":"neutral"},"363":{"n":"Chimney Wallstop","s":"neutral"},"364":{"n":"Arachne Weaver","s":"neutral"},"365":{"n":"Mantoid","s":"neutral"},"366":{"n":"Antoid Platoon","s":"fire"},"367":{"n":"Tenyii Striker","s":"fire"},"368":{"n":"Radiated Brute","s":"fire"},"369":{"n":"Radiated Scorcher","s":"fire"},"370":{"n":"Radiated Zombie","s":"fire"},"371":{"n":"Supply Runner","s":"fire"},"372":{"n":"Lava Launcher","s":"fire"},"373":{"n":"Djinn Apprentice","s":"fire"},"374":{"n":"Djinn Inferni","s":"fire"},"375":{"n":"Grum Flameblade","s":"fire"},"376":{"n":"Efreet Elder","s":"fire"},"377":{"n":"Chaos Elemental","s":"fire"},"378":{"n":"Venari Heatsmith","s":"fire"},"379":{"n":"Forgotten One","s":"fire"},"380":{"n":"Pyrewatch Devil","s":"fire"},"381":{"n":"Pelacor Bandit","s":"fire"},"383":{"n":"Scavo Firebolt","s":"fire"},"384":{"n":"Scavo Hireling","s":"fire"},"385":{"n":"Scavo Chemist","s":"fire"},"386":{"n":"Scavo Warrior","s":"fire"},"387":{"n":"Firecaller","s":"fire"},"388":{"n":"Deeplurker","s":"water"},"389":{"n":"Riverboat Captain","s":"water"},"390":{"n":"Naga Assassin","s":"water"},"391":{"n":"Venari Wavesmith","s":"water"},"392":{"n":"Djinn Biljka","s":"water"},"393":{"n":"Djinn Oshannus","s":"water"},"394":{"n":"Torrent Fiend","s":"water"},"395":{"n":"Merdaali Guardian","s":"water"},"396":{"n":"Pelacor Mercenary","s":"water"},"398":{"n":"Venari Seedsmith","s":"earth"},"399":{"n":"Swamp Worm","s":"earth"},"400":{"n":"Pelacor Conjurer","s":"life"},"401":{"n":"Pelacor Arbalest","s":"life"},"402":{"n":"Venari Crystalsmith","s":"life"},"403":{"n":"Pelacor Deceiver","s":"death"},"404":{"n":"Venari Bonesmith","s":"death"},"405":{"n":"Pelacor Descent","s":"dragon"},"406":{"n":"Djinn Chwala","s":"dragon"},"407":{"n":"Agor Longtail","s":"dragon"},"408":{"n":"Runic Skyclaw","s":"dragon"},"409":{"n":"Robo-Dragon Knight","s":"dragon"},"410":{"n":"Uraeus","s":"neutral"},"411":{"n":"Venari Marksrat","s":"neutral"},"412":{"n":"Venari Spellsmith","s":"neutral"},"413":{"n":"Djinn Muraat","s":"neutral"},"414":{"n":"Chaos Fiend","s":"death"},"415":{"n":"Shadowy Presence","s":"death"},"416":{"n":"Revealer","s":"death"},"417":{"n":"Nightmare","s":"death"},"418":{"n":"Phantom Soldier","s":"death"},"419":{"n":"Soulstorm","s":"death"},"420":{"n":"Silenced Summoner","s":"neutral"},"421":{"n":"Doctor Blight","s":"neutral"},"422":{"n":"Sand Worm","s":"neutral"},"423":{"n":"Ava the Undying","s":"neutral"},"424":{"n":"Ash Mirage","s":"neutral"},"425":{"n":"Fiend of Ash","s":"fire"},"429":{"n":"Thornling","s":"earth"},"431":{"n":"Uriel the Purifier","s":"life"},"432":{"n":"Harpy","s":"life"}};
 
 // ================================================================
 // CONSTANTS
@@ -586,7 +158,6 @@ var HIVE_NODES = [
   'https://rpc.ecency.com',
   'https://hive-api.arcange.eu',
 ];
-var API2 = 'https://api2.splinterlands.com';
 
 var LEAGUE_CFG = { champion:0, diamond:1, gold:2, silver:3, bronze:4 };
 
@@ -607,10 +178,10 @@ var curLeague  = 'champion';
 var archonData = [], unitData = [];
 var sfA = 'all', sfU = 'all';
 var busy = false;
-var battleLogged = false;
+var sampleLogged = false;
 
 // ================================================================
-// UI
+// UI HELPERS
 // ================================================================
 function pick(l){ curLeague=l; document.querySelectorAll('.lb').forEach(function(b){b.classList.toggle('on',b.dataset.l===l);}); }
 function setTab(t){
@@ -621,155 +192,141 @@ function setTab(t){
 function setStatus(cls,msg){document.getElementById('dot').className='dot '+cls;document.getElementById('stxt').textContent=msg;}
 function setProgress(pct,msg){document.getElementById('prog').classList.add('on');document.getElementById('pfill').style.width=pct+'%';if(msg)document.getElementById('ptxt').textContent=msg;}
 function hideProgress(){document.getElementById('prog').classList.remove('on');}
-
 var dbgEl=document.getElementById('dbg'), dbgBuf=[];
-function log(){
-  var s=Array.prototype.slice.call(arguments).join(' ');
-  dbgBuf.push(s); if(dbgBuf.length>500) dbgBuf.shift();
-  dbgEl.textContent=dbgBuf.join('\n'); dbgEl.scrollTop=dbgEl.scrollHeight;
-}
-
-function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function log(){var s=Array.prototype.slice.call(arguments).join(' ');dbgBuf.push(s);if(dbgBuf.length>600)dbgBuf.shift();dbgEl.textContent=dbgBuf.join('\n');dbgEl.scrollTop=dbgEl.scrollHeight;}
 
 // ================================================================
-// HIVE RPC (direct POST, no proxy needed - CORS open)
+// HIVE RPC — direct POST, CORS is open on all Hive nodes
 // ================================================================
 function hiveRPC(node, method, params){
   return fetch(node,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({jsonrpc:'2.0',method:method,params:params,id:1}),
-    signal:AbortSignal.timeout(15000),
+    signal:AbortSignal.timeout(20000),
   })
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(d){if(d.error)throw new Error(d.error.message);return d.result;});
 }
 
 // ================================================================
-// GET BATTLES  - tries Hive nodes then SPL API
+// GET BATTLES FROM HIVE
+// Key insight: sm_submit_team contains the actual team lineup
+// We fetch last 1000 ops with NO filter (filter caused empty results)
+// Then client-side filter for sm_submit_team + modern format
 // ================================================================
 function getBattlesFromHive(player, node){
-  // operation_filter_low = 2^18 = 262144 for custom_json
-  return hiveRPC(node,'condenser_api.get_account_history',[player,-1,1000,262144,0])
+  return hiveRPC(node,'condenser_api.get_account_history',[player,-1,1000])
     .then(function(result){
-      if(!Array.isArray(result)) throw new Error('not an array');
-      var battles=[];
+      if(!Array.isArray(result)) throw new Error('result not array');
+
+      var battles=[], seenTrx={};
+      var cjIds={};  // track all custom_json ids for debug
+
       result.forEach(function(entry){
         if(!Array.isArray(entry)||entry.length<2) return;
-        var op=entry[1].op;
+        var opWrapper=entry[1];
+        var op=opWrapper.op;
         if(!op||op[0]!=='custom_json') return;
+
         var cid=op[1].id||'';
-        if(cid.indexOf('battle')===-1&&cid.indexOf('sm_')===-1) return;
+        cjIds[cid]=(cjIds[cid]||0)+1;
+
+        // Only sm_submit_team has summoner+monsters lineup
+        if(cid!=='sm_submit_team') return;
+
+        // Deduplicate
+        var trxId=opWrapper.trx_id||'';
+        if(trxId&&seenTrx[trxId]) return;
+        if(trxId) seenTrx[trxId]=true;
+
         try{
           var data=typeof op[1].json==='string'?JSON.parse(op[1].json):op[1].json;
-          if(data) battles.push(data);
+          if(!data||!data.summoner_id) return; // must have summoner
+
+          // Modern format filter
+          // format field can be: 'modern', 'wild', 'frontier', 'survival', 'tournament'
+          var fmt=(data.format||'').toLowerCase();
+          if(fmt && fmt!=='modern') return;
+          // If no format field at all, include it (older modern battles may lack the field)
+
+          battles.push(data);
         }catch(e){}
       });
-      if(!battleLogged){
-        battleLogged=true;
-        log('Hive OK: '+result.length+' ops, '+battles.length+' battles for '+player+' via '+node);
+
+      if(!sampleLogged){
+        sampleLogged=true;
+        log('=== HIVE SAMPLE: '+player+' via '+node+' ===');
+        log('Total ops: '+result.length+' | sm_submit_team modern: '+battles.length);
+        log('All custom_json ids: '+JSON.stringify(cjIds));
         if(battles.length>0){
           log('battle[0] keys: '+Object.keys(battles[0]).join(', '));
-          log('sample: '+JSON.stringify(battles[0]).slice(0,250));
-        } else {
-          log('No battle ops found. Custom_json ops in result:');
-          var cjCount=0;
-          result.forEach(function(e){if(Array.isArray(e)&&e[1]&&e[1].op&&e[1].op[0]==='custom_json'){cjCount++;if(cjCount<=3)log('  id='+e[1].op[1].id);}});
-          log('Total custom_json ops: '+cjCount);
+          log('battle[0]: '+JSON.stringify(battles[0]).slice(0,300));
         }
       }
+
       return battles;
     });
 }
 
-function getBattlesFromSPL(player){
-  var proxies=[
-    'https://corsproxy.io/?url=',
-    'https://api.allorigins.win/raw?url=',
-  ];
-  var url=API2+'/battle/history?player='+encodeURIComponent(player)+'&limit=50';
-  function tryProxy(i){
-    if(i>=proxies.length) return Promise.reject(new Error('all proxies failed'));
-    return fetch(proxies[i]+encodeURIComponent(url),{signal:AbortSignal.timeout(12000)})
-      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
-      .then(function(txt){
-        if(!txt||txt==='null'||txt[0]==='<') throw new Error('bad response');
-        var d=JSON.parse(txt);
-        var arr=Array.isArray(d)?d:(d&&Array.isArray(d.battles)?d.battles:[]);
-        if(!battleLogged&&arr.length>0){
-          battleLogged=true;
-          log('SPL API OK: '+arr.length+' battles for '+player);
-          log('battle[0] keys: '+Object.keys(arr[0]).join(', '));
-          if(arr[0].details) log('details: '+String(arr[0].details).slice(0,200));
-        }
-        return arr;
-      })
-      .catch(function(e){log('SPL proxy '+i+' fail: '+e.message); return tryProxy(i+1);});
-  }
-  return tryProxy(0);
-}
-
+// ================================================================
+// GET BATTLES — try each Hive node in sequence
+// ================================================================
 function getBattles(player){
-  var nodeIdx=0;
-  function tryNode(){
-    if(nodeIdx>=HIVE_NODES.length){
-      log('All Hive nodes failed for '+player+', trying SPL API...');
-      return getBattlesFromSPL(player).catch(function(e){
-        log('SPL API also failed: '+e.message);
-        return [];
-      });
+  var idx=0;
+  function tryNext(){
+    if(idx>=HIVE_NODES.length){
+      if(!sampleLogged){sampleLogged=true;log('All Hive nodes failed for '+player);}
+      return Promise.resolve([]);
     }
-    var node=HIVE_NODES[nodeIdx++];
+    var node=HIVE_NODES[idx++];
     return getBattlesFromHive(player,node).catch(function(e){
-      log('Hive node failed ('+node+'): '+e.message);
-      return tryNode();
+      log('Node fail ('+node.split('/')[2]+'): '+e.message);
+      return tryNext();
     });
   }
-  return tryNode();
+  return tryNext();
 }
 
 // ================================================================
-// PARSE BATTLE
+// PARSE sm_submit_team DATA INTO CARDS
+// sm_submit_team format:
+// { summoner_id: 135, monsters: [171,179,...], format:'modern', ... }
 // ================================================================
-function parseBattle(b){
+function parseSubmitTeam(b){
   var out=[];
-  // Hive sm_battle: {team:{summoner,monsters}}
-  if(b.team){addTeam(b.team,out);if(out.length)return out;}
-  // SPL API: {details:"{team1,team2}"}
-  var det=b.details;
-  if(typeof det==='string'){try{det=JSON.parse(det);}catch(e){det=null;}}
-  if(det){if(det.team1)addTeam(det.team1,out);if(det.team2)addTeam(det.team2,out);if(out.length)return out;}
-  // top level team1/team2
-  ['team1','team2'].forEach(function(k){
-    var t=b[k];
-    if(typeof t==='string'){try{t=JSON.parse(t);}catch(e){t=null;}}
-    if(t)addTeam(t,out);
-  });
-  return out;
-}
 
-function cardInfo(id){
-  var c=CARDS[String(id)];
-  return c || null;
-}
-
-function addTeam(team,out){
-  if(!team) return;
-  var s=team.summoner;
-  if(s){
-    var sid=String(s.card_detail_id||s.id||'');
-    var si=cardInfo(sid);
-    var sn=si?si.n:(s.name||(sid?'Archon#'+sid:null));
-    if(sn) out.push({type:'summoner',name:sn,splinter:si?si.s:'neutral'});
+  // Summoner
+  var sid=String(b.summoner_id||b.summoner||'');
+  if(sid&&sid!=='0'){
+    var si=CARDS[sid];
+    out.push({
+      type:'summoner',
+      name: si?si.n:'Archon#'+sid,
+      splinter: si?si.s:'neutral',
+    });
   }
-  (team.monsters||[]).forEach(function(m){
+
+  // Monsters — can be array of IDs or array of objects
+  var mons=b.monsters||b.team||[];
+  mons.forEach(function(m){
     if(!m) return;
-    var mid=String(m.card_detail_id||m.id||'');
+    var mid='';
+    if(typeof m==='number'||typeof m==='string'){
+      mid=String(m);
+    } else if(typeof m==='object'){
+      mid=String(m.card_detail_id||m.id||'');
+    }
     if(!mid||mid==='0') return;
-    var mi=cardInfo(mid);
-    var mn=mi?mi.n:(m.name||'Unit#'+mid);
-    out.push({type:'monster',name:mn,splinter:mi?mi.s:'neutral'});
+    var mi=CARDS[mid];
+    out.push({
+      type:'monster',
+      name: mi?mi.n:'Unit#'+mid,
+      splinter: mi?mi.s:'neutral',
+    });
   });
+
+  return out;
 }
 
 // ================================================================
@@ -777,7 +334,7 @@ function addTeam(team,out){
 // ================================================================
 function loadData(){
   if(busy) return;
-  busy=true; dbgBuf=[]; battleLogged=false;
+  busy=true; dbgBuf=[]; sampleLogged=false;
   var btn=document.getElementById('loadBtn');
   btn.disabled=true; btn.textContent='Loading...';
   setStatus('loading','Working...');
@@ -787,22 +344,21 @@ function loadData(){
 
   var lbId=LEAGUE_CFG[curLeague];
   var players=LEAGUE_PLAYERS[lbId]||LEAGUE_PLAYERS[0];
-  log('League: '+curLeague+' | Players: '+players.length+' | Card DB: '+Object.keys(CARDS).length+' cards (embedded)');
+  log('League: '+curLeague+' ('+lbId+') | Players: '+players.length+' | Cards: '+Object.keys(CARDS).length+' embedded | Modern only');
 
   var counts={summoner:{},monster:{}};
   var totalBattles=0,totalCards=0,done=0,total=players.length;
 
-  setProgress(5,'Card DB ready (embedded). Fetching battles...');
+  setProgress(3,'Fetching battles from Hive blockchain...');
 
   function processNext(i){
     if(i>=total){finish();return;}
-    var pct=5+Math.round(i/total*90);
-    setProgress(pct,done+'/'+total+' players | '+totalBattles+' battles | '+totalCards+' card uses');
+    setProgress(3+Math.round(i/total*92), done+'/'+total+' players | '+totalBattles+' battles | '+totalCards+' card uses');
     getBattles(players[i]).then(function(battles){
       done++;
       battles.forEach(function(b){
         totalBattles++;
-        var cards=parseBattle(b);
+        var cards=parseSubmitTeam(b);
         totalCards+=cards.length;
         cards.forEach(function(c){
           var bkt=c.type==='summoner'?'summoner':'monster';
@@ -813,14 +369,18 @@ function loadData(){
       setTimeout(function(){processNext(i+1);},80);
     });
   }
+
   processNext(0);
 
   function finish(){
-    log('Done | battles='+totalBattles+' cards='+totalCards+' summoners='+Object.keys(counts.summoner).length+' monsters='+Object.keys(counts.monster).length);
+    log('DONE | battles='+totalBattles+' cards='+totalCards+' summoners='+Object.keys(counts.summoner).length+' monsters='+Object.keys(counts.monster).length);
     archonData=Object.keys(counts.summoner).map(function(n){return{name:n,count:counts.summoner[n].count,splinter:counts.summoner[n].splinter};}).sort(function(a,b){return b.count-a.count;});
     unitData=Object.keys(counts.monster).map(function(n){return{name:n,count:counts.monster[n].count,splinter:counts.monster[n].splinter};}).sort(function(a,b){return b.count-a.count;});
+
     if(!archonData.length&&!unitData.length){
-      ['lArchon','lUnit'].forEach(function(id){document.getElementById(id).innerHTML='<div class="err-box">No card data found after '+totalBattles+' battles.<br>Check debug log above for details.</div>';});
+      ['lArchon','lUnit'].forEach(function(id){
+        document.getElementById(id).innerHTML='<div class="err-box">No modern battle data found after processing '+done+' players.<br>Check debug log above for details.</div>';
+      });
       setStatus('err','No data - see debug');
     } else {
       var tA=archonData.reduce(function(s,c){return s+c.count;},0);
@@ -835,9 +395,9 @@ function loadData(){
       document.getElementById('sPlayers').textContent=done;
       document.getElementById('sUnits').textContent=unitData.length;
       document.getElementById('sTop').textContent=archonData[0]?archonData[0].name:'-';
-      setStatus('live',curLeague+' | '+totalBattles+' battles');
+      setStatus('live',curLeague+' modern | '+totalBattles+' battles');
     }
-    hideProgress(); busy=false; btn.disabled=false; btn.textContent='Refresh';
+    hideProgress();busy=false;btn.disabled=false;btn.textContent='Refresh';
   }
 }
 
@@ -853,10 +413,9 @@ function renderList(elId,data,total,filter){
     var pct=total>0?(item.count/total*100).toFixed(1):0;
     var bar=Math.round(item.count/mx*100);
     var sp=SP_CFG[item.splinter]||SP_CFG.neutral;
-    var rk=i===0?'1':i===1?'2':i===2?'3':(i+1)+'';
     return '<div class="ci">'
-      +'<div class="rk'+(i<3?' t3':'')+'">'+rk+'</div>'
-      +'<div class="ico" style="background:'+sp.color+'22;color:'+sp.color+';font-weight:700">'+sp.e+'</div>'
+      +'<div class="rk'+(i<3?' t3':'')+'">'+(i+1)+'</div>'
+      +'<div class="ico" style="background:'+sp.color+'22;color:'+sp.color+'">'+sp.e+'</div>'
       +'<div class="ci-info"><div class="cn">'+item.name+'</div>'
       +'<div class="cs"><span class="sd" style="background:'+sp.color+'"></span>'+sp.label+'</div></div>'
       +'<div class="bw"><div class="bbg"><div class="bf" style="width:'+bar+'%;background:'+sp.color+'70;border-right:2px solid '+sp.color+'"></div></div>'
@@ -884,10 +443,10 @@ function filterSp(prefix,sp){
   else{sfU=sp;renderList('lUnit',unitData,unitData.reduce(function(s,c){return s+c.count;},0),sp);renderFilters('sfUnit',unitData,'U');}
 }
 
-window.pick=pick;window.setTab=setTab;window.loadData=loadData;window.filterSp=filterSp;
+window.pick=pick; window.setTab=setTab; window.loadData=loadData; window.filterSp=filterSp;
 
 // ================================================================
-// PLAYER LISTS PER LEAGUE
+// PLAYER LISTS PER LEAGUE (hardcoded — avoids rate-limited LB API)
 // ================================================================
 var LEAGUE_PLAYERS={
   0:['jacekw','sm-voter','abrockman','nateaguila','bulldog1205','flauwy','sosandesu','kalkulus','tcpolymath','marianaemilia','aggroed','yabapmatt','clove71','freedompoint','beeyou','dewabrata','rishi556','solaito','koodies','shoemanchu','darthgexe','solymi','drabs587','cryptoeater','monsterjamgold','underlock','hardaeborla','libertycrypto27','brontojosef','monsterbuster','mango-juice','michupa','captaincryptic','epicdice','isaria','doomhammermonk','alexis666','tnarbopoulos','meesterboom','rentmoney','azzury','jarvie','khimeria','masterthematrix','cryptkeeper95','mordikkio','imno','gerber','gank','nedbold'],
