@@ -217,6 +217,32 @@ var CARDS = {
 };
 
 // ================================================================
+// RUNTIME CARD FETCHER - fetch names for unknown card IDs
+// ================================================================
+function fetchUnknownCards(unknownIds) {
+  if(!unknownIds.length) return Promise.resolve();
+  // Fetch in batches of 50
+  var batches = [];
+  for(var i=0; i<unknownIds.length; i+=50){
+    batches.push(unknownIds.slice(i,i+50));
+  }
+  return Promise.all(batches.map(function(batch){
+    return fetch('/api/cards?ids='+batch.join(','))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(Array.isArray(data)){
+          data.forEach(function(c){
+            if(c && c.id && c.name){
+              CARDS[String(c.id)] = {n: c.name, s: c.splinter || 'neutral'};
+            }
+          });
+        }
+      })
+      .catch(function(){});
+  }));
+}
+
+// ================================================================
 // STATE
 // ================================================================
 var curLeague = 'champion';
@@ -426,6 +452,41 @@ function loadData(){
             ' summoners='+Object.keys(counts.summoner).length+
             ' monsters='+Object.keys(counts.monster).length);
 
+        // Collect unknown card IDs and fetch their names
+        var unknownIds = [];
+        Object.keys(counts.summoner).concat(Object.keys(counts.monster)).forEach(function(name){
+          if(name.indexOf('Archon#') === 0) unknownIds.push(name.replace('Archon#',''));
+          if(name.indexOf('Unit#') === 0) unknownIds.push(name.replace('Unit#',''));
+        });
+        // Deduplicate
+        unknownIds = unknownIds.filter(function(v,i,a){return a.indexOf(v)===i;});
+        
+        fetchUnknownCards(unknownIds).then(function(){
+          // Re-map names now that we have card data
+          var remapped = {summoner:{}, monster:{}};
+          Object.keys(counts.summoner).forEach(function(oldName){
+            var id = oldName.replace('Archon#','');
+            var info = CARDS[id];
+            var newName = info ? info.n : oldName;
+            var sp = info ? info.s : counts.summoner[oldName].splinter;
+            if(!remapped.summoner[newName]) remapped.summoner[newName]={count:0,splinter:sp};
+            remapped.summoner[newName].count += counts.summoner[oldName].count;
+          });
+          Object.keys(counts.monster).forEach(function(oldName){
+            var id = oldName.replace('Unit#','');
+            var info = CARDS[id];
+            var newName = info ? info.n : oldName;
+            var sp = info ? info.s : counts.monster[oldName].splinter;
+            if(!remapped.monster[newName]) remapped.monster[newName]={count:0,splinter:sp};
+            remapped.monster[newName].count += counts.monster[oldName].count;
+          });
+          counts = remapped;
+          renderResults(counts, totalBattles, done);
+        });
+      }
+
+      function renderResults(counts, totalBattles, done){
+
         archonData = Object.keys(counts.summoner).map(function(n){
           return {name:n,count:counts.summoner[n].count,splinter:counts.summoner[n].splinter};
         }).sort(function(a,b){return b.count-a.count;});
@@ -458,7 +519,9 @@ function loadData(){
         busy=false;
         btn.disabled=false;
         btn.textContent='Refresh';
-      }
+      } // end renderResults
+
+      } // end fetchUnknownCards.then
     })
     .catch(function(e){
       log('FATAL: '+e.message);
