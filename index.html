@@ -340,8 +340,9 @@ function getBattles(player){
 
 // ================================================================
 // STEP 3: PARSE BATTLE
-// actions have: initiator:{card_detail_id, team, type} and target:{card_detail_id, team}
-// We extract card IDs from initiator/target fields across all rounds
+// UID format: "C{edition}-{card_detail_id}-{HASH}-{player_name}"
+// e.g. "C12-648-30OIKBXHGG-vraba" -> card_detail_id=648, player=vraba
+// Summoner = initiator of 'buff' action type
 // ================================================================
 function parseBattle(b){
   var out = [];
@@ -349,29 +350,32 @@ function parseBattle(b){
   if(typeof det === 'string'){ try{ det = JSON.parse(det); }catch(e){ det = null; } }
   if(!det || !det.rounds || !det.rounds.length) return out;
 
-  var team1 = {summoner:null, monsters:{}};
-  var team2 = {summoner:null, monsters:{}};
+  var p1 = b.player_1 || '';
+  var p2 = b.player_2 || '';
 
-  // UID format: "C{edition}-{card_detail_id}-{uid_hash}-{player_name}"
-  // e.g. "C12-649-4CSTEJ5OG0-markboye1" -> card_detail_id=649, player=markboye1
-  var p1 = b.player_1;
-  var p2 = b.player_2;
-
-  // UID: "C{edition}-{card_detail_id}-{HASH}-{player_name}"
-  // card_detail_id = parts[1], player = everything after the 3rd hyphen
+  // Parse UID: second segment is always card_detail_id
+  // Player name is everything after the 3rd hyphen
   function parseUid(uid){
     if(!uid || typeof uid !== 'string') return null;
-    var m = uid.match(/^C\d+-([0-9]+)-[A-Z0-9]+-(.+)$/);
-    if(!m) return null;
-    return {cid: m[1], player: m[2]};
+    var parts = uid.split('-');
+    // parts[0]=C12, parts[1]=648(card_id), parts[2]=HASH, parts[3+]=player
+    if(parts.length < 4) return null;
+    var cid = parts[1];
+    if(!/^[0-9]+$/.test(cid)) return null;
+    // Player is parts[3] onwards joined (handles hyphenated names)
+    var player = parts.slice(3).join('-');
+    return {cid: cid, player: player};
   }
+
+  var summoners = {};  // player -> card_detail_id
+  var monsters = {};   // card_detail_id -> player
 
   det.rounds.forEach(function(round){
     (round.actions||[]).forEach(function(action){
-      // Summoner casts buff on round 0; initiator of buff = summoner
-      var isSummonerAction = action.type === 'buff';
-
-      [action.initiator, action.target].forEach(function(uid, idx){
+      var isBuff = action.type === 'buff';
+      // Process initiator (idx 0) and target (idx 1)
+      var uids = [action.initiator, action.target];
+      uids.forEach(function(uid, idx){
         if(!uid) return;
         var parsed = parseUid(uid);
         if(!parsed) return;
@@ -379,44 +383,51 @@ function parseBattle(b){
         var player = parsed.player;
         if(!cid || cid === '0') return;
 
-        // Determine team
-        var isP1 = (player === p1);
-        var isP2 = (player === p2);
-        // For hyphenated player names, check if p1/p2 ends with the parsed player
-        if(!isP1 && !isP2){
-          isP1 = p1 && p1.indexOf(player) >= 0;
-          isP2 = p2 && p2.indexOf(player) >= 0;
-        }
-
-        // Summoner: initiator (idx=0) of a buff action
-        var isSummoner = isSummonerAction && idx === 0;
-
-        if(isP1){
-          if(isSummoner){ if(!team1.summoner) team1.summoner = cid; }
-          else team1.monsters[cid] = true;
-        } else if(isP2){
-          if(isSummoner){ if(!team2.summoner) team2.summoner = cid; }
-          else team2.monsters[cid] = true;
+        // Summoner = initiator of buff action
+        if(isBuff && idx === 0){
+          if(!summoners[player]) summoners[player] = cid;
+        } else {
+          if(!monsters[cid]) monsters[cid] = player;
         }
       });
     });
   });
 
-  // Log first parse for debug
+  // Log first parse
   if(!parseBattle._done){
     parseBattle._done = true;
-    var sample = (det.rounds[0].actions||[])[0];
-    if(sample){
-      log('Action type='+sample.type+' initiator='+JSON.stringify(sample.initiator)+' target='+JSON.stringify(sample.target));
-    }
-    log('p1='+b.player_1+' p2='+b.player_2);
-    log('team1 summoner='+team1.summoner+' monsters='+Object.keys(team1.monsters).length);
-    log('team2 summoner='+team2.summoner+' monsters='+Object.keys(team2.monsters).length);
-    // Log all unique action types seen
-    var allTypes = {};
-    det.rounds.forEach(function(r){(r.actions||[]).forEach(function(a){allTypes[a.type]=true;});});
-    log('All action types: '+Object.keys(allTypes).join(', '));
+    log('PARSE DEBUG: p1='+p1+' p2='+p2);
+    log('Summoners found: '+JSON.stringify(summoners));
+    log('Monster count: '+Object.keys(monsters).length);
+    // Log all buff actions to debug summoner detection
+    var buffActions = [];
+    det.rounds.forEach(function(r){
+      (r.actions||[]).forEach(function(a){
+        if(a.type==='buff') buffActions.push('round'+r.num+' init='+a.initiator+' tgt='+a.target);
+      });
+    });
+    log('Buff actions ('+buffActions.length+'): '+buffActions.slice(0,4).join(' | '));
   }
+
+  // Add summoners for both players
+  [p1, p2].forEach(function(player){
+    var sid = summoners[player];
+    if(!sid) return;
+    var si = CARDS[sid];
+    out.push({type:'summoner', name: si?si.n:'Archon#'+sid, splinter: si?si.s:'neutral'});
+  });
+
+  // Add all monsters
+  var seen = {};
+  Object.keys(monsters).forEach(function(mid){
+    if(seen[mid]) return;
+    seen[mid] = true;
+    var mi = CARDS[mid];
+    out.push({type:'monster', name: mi?mi.n:'Unit#'+mid, splinter: mi?mi.s:'neutral'});
+  });
+
+  return out;
+}
 
   // Add summoners
   [team1.summoner, team2.summoner].forEach(function(sid){
@@ -617,7 +628,6 @@ function renderFilters(elId,data,prefix){
 function filterSp(prefix,sp){
   if(prefix==='A'){sfA=sp;renderList('lArchon',archonData,archonData.reduce(function(s,c){return s+c.count;},0),sp);renderFilters('sfArchon',archonData,'A');}
   else{sfU=sp;renderList('lUnit',unitData,unitData.reduce(function(s,c){return s+c.count;},0),sp);renderFilters('sfUnit',unitData,'U');}
-}
 
 window.pick=pick; window.setTab=setTab; window.loadData=loadData; window.filterSp=filterSp;
 
