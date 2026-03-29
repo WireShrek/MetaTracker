@@ -310,54 +310,64 @@ function getBattles(player){
 }
 
 // ================================================================
-// STEP 3: PARSE BATTLE — extract summoner + monsters
-// The SPL API battle/history response has:
-// { details: "{team1:{summoner:{card_detail_id,...}, monsters:[...]}, team2:{...}}", ... }
-// OR details is already an object
+// STEP 3: PARSE BATTLE
+// details field has: {seed, rounds:[{num, round_info, actions:[{card_detail_id, team, type, ...}]}]}
+// We extract card_detail_id + team number from every action across all rounds
 // ================================================================
 function parseBattle(b){
   var out = [];
-
   var det = b.details;
-  if(typeof det === 'string'){
-    try{ det = JSON.parse(det); }catch(e){ det = null; }
+  if(typeof det === 'string'){ try{ det = JSON.parse(det); }catch(e){ det = null; } }
+  if(!det || !det.rounds || !det.rounds.length) return out;
+
+  // Collect unique cards per team across all rounds
+  var team1 = {summoner:null, monsters:{}};
+  var team2 = {summoner:null, monsters:{}};
+
+  det.rounds.forEach(function(round){
+    (round.actions||[]).forEach(function(action){
+      var cid = String(action.card_detail_id || '');
+      if(!cid || cid === '0') return;
+      var t = String(action.team || '');
+      var isSummoner = action.type === 'summoner' || action.card_type === 'Summoner';
+      if(t === '1'){
+        if(isSummoner){ if(!team1.summoner) team1.summoner = cid; }
+        else team1.monsters[cid] = true;
+      } else if(t === '2'){
+        if(isSummoner){ if(!team2.summoner) team2.summoner = cid; }
+        else team2.monsters[cid] = true;
+      }
+    });
+  });
+
+  // Log first parse for debug
+  if(!parseBattle._done){
+    parseBattle._done = true;
+    var sample = (det.rounds[0].actions||[])[0];
+    if(sample) log('Action keys: '+Object.keys(sample).join(', '));
+    log('team1 summoner='+team1.summoner+' monsters='+Object.keys(team1.monsters).length);
+    log('team2 summoner='+team2.summoner+' monsters='+Object.keys(team2.monsters).length);
   }
 
-  if(det){
-    if(det.team1) addTeam(det.team1, out);
-    if(det.team2) addTeam(det.team2, out);
-    if(out.length) return out;
-  }
+  // Add summoners
+  [team1.summoner, team2.summoner].forEach(function(sid){
+    if(!sid) return;
+    var si = CARDS[sid];
+    out.push({type:'summoner', name:si?si.n:'Archon#'+sid, splinter:si?si.s:'neutral'});
+  });
 
-  // Fallback: top-level team1/team2
-  ['team1','team2'].forEach(function(k){
-    var t = b[k];
-    if(typeof t==='string'){ try{t=JSON.parse(t);}catch(e){t=null;} }
-    if(t) addTeam(t, out);
+  // Add monsters (deduplicated across teams)
+  var seen = {};
+  [team1.monsters, team2.monsters].forEach(function(mons){
+    Object.keys(mons).forEach(function(mid){
+      if(seen[mid]) return;
+      seen[mid] = true;
+      var mi = CARDS[mid];
+      out.push({type:'monster', name:mi?mi.n:'Unit#'+mid, splinter:mi?mi.s:'neutral'});
+    });
   });
 
   return out;
-}
-
-function addTeam(team, out){
-  if(!team) return;
-  // Summoner
-  var s = team.summoner;
-  if(s){
-    var sid = String(s.card_detail_id || s.id || '');
-    var si = CARDS[sid];
-    var sn = si ? si.n : (s.name || (sid ? 'Archon#'+sid : null));
-    if(sn) out.push({type:'summoner', name:sn, splinter: si ? si.s : 'neutral'});
-  }
-  // Monsters
-  (team.monsters||[]).forEach(function(m){
-    if(!m) return;
-    var mid = String(m.card_detail_id || m.id || '');
-    if(!mid||mid==='0') return;
-    var mi = CARDS[mid];
-    var mn = mi ? mi.n : (m.name || 'Unit#'+mid);
-    out.push({type:'monster', name:mn, splinter: mi ? mi.s : 'neutral'});
-  });
 }
 
 // ================================================================
