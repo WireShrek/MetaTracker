@@ -232,22 +232,31 @@ function parseBattle(battle) {
         var cid = parsed.cid;
         var player = parsed.player;
         if (isBuff && idx === 0) {
+          // Summoner = initiator of buff action
           if (!summoners[player]) summoners[player] = cid;
         } else {
-          monsters[cid] = player;
+          // Monster - track by player so we know which team
+          if (!monsters[cid]) monsters[cid] = player;
         }
       });
     });
   });
 
+  // Collect summoner card IDs to exclude from monsters list
+  var sumIds = {};
+  Object.keys(summoners).forEach(function(p) { sumIds[summoners[p]] = true; });
+
   var out = [];
+  // Add summoners for p1 and p2
   [p1, p2].forEach(function(player) {
     var sid = summoners[player];
     if (!sid) return;
     var info = CARDS[sid];
     out.push({ type: 'summoner', name: info ? info.n : 'Archon#' + sid, splinter: info ? info.s : 'neutral' });
   });
+  // Add monsters - EXCLUDE any card that was also used as a summoner
   Object.keys(monsters).forEach(function(mid) {
+    if (sumIds[mid]) return; // skip cards that are summoners
     var info = CARDS[mid];
     out.push({ type: 'monster', name: info ? info.n : 'Unit#' + mid, splinter: info ? info.s : 'neutral' });
   });
