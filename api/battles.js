@@ -4,7 +4,7 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
-  const player = req.query.player;
+  const { player, debug } = req.query;
   if (!player) return res.status(400).json({ error: 'player required' });
 
   const token = process.env.SPL_TOKEN;
@@ -27,6 +27,24 @@ module.exports = async function handler(req, res) {
       let data = '';
       response.on('data', chunk => data += chunk);
       response.on('end', () => {
+        // In debug mode, show parsed details of first battle
+        if (debug === '1') {
+          try {
+            const parsed = JSON.parse(data);
+            const battles = parsed.battles || parsed;
+            const first = battles[0];
+            const det = typeof first.details === 'string' ? JSON.parse(first.details) : first.details;
+            return res.status(200).json({
+              top_keys: Object.keys(first),
+              details_keys: det ? Object.keys(det) : null,
+              details_sample: det,
+            });
+          } catch(e) {
+            return res.status(200).json({ raw: data.slice(0, 1000) });
+          } finally {
+            resolve();
+          }
+        }
         res.status(response.statusCode).send(data);
         resolve();
       });
