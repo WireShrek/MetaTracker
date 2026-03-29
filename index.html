@@ -184,7 +184,7 @@ var CARDS = {
 "71":{"n":"Alric Stormbringer","s":"water"},"72":{"n":"Frozen Soldier","s":"water"},"73":{"n":"Ruler of the Seas","s":"water"},"74":{"n":"Mermaid Healer","s":"water"},"75":{"n":"Pirate Captain","s":"water"},"76":{"n":"Wave Brood","s":"water"},"77":{"n":"Feasting Seaweed","s":"water"},"78":{"n":"Torhilo the Frozen","s":"water"},"79":{"n":"Water Elemental","s":"water"},
 "80":{"n":"Biceratops","s":"earth"},"81":{"n":"Rexxie","s":"earth"},"82":{"n":"Goblin Chef","s":"earth"},"83":{"n":"Goblin Thief","s":"earth"},"84":{"n":"Khmer Princess","s":"earth"},"85":{"n":"Unicorn Mustang","s":"earth"},"86":{"n":"Grund","s":"earth"},"87":{"n":"Queen Mycelia","s":"earth"},"88":{"n":"Fungus Fiend","s":"earth"},"89":{"n":"Halfling Alchemist","s":"earth"},
 "90":{"n":"Daria Dragonscale","s":"dragon"},"91":{"n":"Manticore","s":"dragon"},"92":{"n":"Lord Arianthus","s":"neutral"},"93":{"n":"Cocatrice","s":"dragon"},"94":{"n":"Brighton Bloom","s":"dragon"},
-"95":{"n":"Kretch Tallevor","s":"fire"},"96":{"n":"Malric Inferno","s":"fire"},"97":{"n":"Chanseus the Great","s":"life"},"98":{"n":"Mother Khala","s":"life"},"99":{"n":"Delwyn Dragonscale","s":"dragon"},"100":{"n":"Valnamor","s":"water"},"101":{"n":"Owster Rotwell","s":"death"},"102":{"n":"Contessa L'ament","s":"death"},"103":{"n":"Prince Rennyn","s":"earth"},"104":{"n":"Mylor Crowling","s":"earth"},"105":{"n":"Prince Julian","s":"water"},"106":{"n":"Mimosa Nightshade","s":"death"},
+"95":{"n":"Kretch Tallevor","s":"fire"},"96":{"n":"Malric Inferno","s":"fire"},"97":{"n":"Chanseus the Great","s":"life"},"98":{"n":"Mother Khala","s":"life"},"99":{"n":"Delwyn Dragonscale","s":"dragon"},"100":{"n":"Valnamor","s":"water"},"101":{"n":"Owster Rotwell","s":"death"},"102":{"n":"Contessa Lament","s":"death"},"103":{"n":"Prince Rennyn","s":"earth"},"104":{"n":"Mylor Crowling","s":"earth"},"105":{"n":"Prince Julian","s":"water"},"106":{"n":"Mimosa Nightshade","s":"death"},
 "107":{"n":"Goblin Mech","s":"neutral"},"108":{"n":"Creeping Ooze","s":"neutral"},"109":{"n":"Furious Chicken","s":"neutral"},"110":{"n":"Peaceful Giant","s":"neutral"},"111":{"n":"Prismatic Energy","s":"neutral"},"112":{"n":"Failed Summoner","s":"neutral"},"113":{"n":"Gelatinous Cube","s":"neutral"},"114":{"n":"Phantom Soldier","s":"death"},"115":{"n":"Cornealus","s":"neutral"},"116":{"n":"Kralus","s":"dragon"},"117":{"n":"Sacred Unicorn","s":"life"},"118":{"n":"Vampire","s":"death"},"119":{"n":"Dhampir Stalker","s":"death"},
 "120":{"n":"Pelacor Bandit","s":"fire"},"121":{"n":"Pelacor Conjurer","s":"life"},"122":{"n":"Pelacor Deceiver","s":"death"},"123":{"n":"Pelacor Mercenary","s":"water"},"124":{"n":"Pelacor Arbalest","s":"life"},"125":{"n":"Pelacor Descent","s":"dragon"},"126":{"n":"Uraeus","s":"neutral"},
 "127":{"n":"Djinn Apprentice","s":"fire"},"128":{"n":"Djinn Chwala","s":"dragon"},"129":{"n":"Djinn Biljka","s":"water"},"130":{"n":"Djinn Renova","s":"life"},"131":{"n":"Djinn Oshannus","s":"water"},"132":{"n":"Djinn Muraat","s":"neutral"},"133":{"n":"Djinn Inferni","s":"fire"},
@@ -466,7 +466,23 @@ function loadData(){
   var lbId = LEAGUE_ID[curLeague];
   log('League: '+curLeague+' ('+lbId+') | Cards: '+Object.keys(CARDS).length+' embedded | Modern only');
 
-  setProgress(3, 'Fetching live leaderboard...');
+  setProgress(3, 'Loading full card database...');
+
+  // Preload ALL cards from API before fetching battles
+  fetch('/api/cards?ids=all')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(Array.isArray(data) && data.length > 0){
+        data.forEach(function(c){
+          if(c && c.id && c.name) CARDS[String(c.id)] = {n: c.name, s: c.splinter || 'neutral'};
+        });
+        log('Full card DB loaded: '+Object.keys(CARDS).length+' cards');
+      }
+    })
+    .catch(function(e){ log('Card preload failed: '+e.message+' - using embedded cards only'); })
+    .then(function(){
+
+  setProgress(8, 'Fetching live leaderboard...');
 
   getLeaderboard(lbId)
     .then(function(players){
@@ -586,6 +602,8 @@ function loadData(){
       btn.disabled=false;
       btn.textContent='Retry';
     });
+
+  }); // end card preload .then
 }
 
 // ================================================================
