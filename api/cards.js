@@ -1,6 +1,5 @@
 const https = require('https');
 
-// In-memory cache so we only fetch once per cold start
 let cardCache = null;
 
 module.exports = async function handler(req, res) {
@@ -11,29 +10,32 @@ module.exports = async function handler(req, res) {
   if (!ids) return res.status(400).json({ error: 'ids required' });
 
   const wantedIds = new Set(ids.split(',').map(s => parseInt(s.trim())).filter(Boolean));
-  const colorMap = { Red:'fire', Blue:'water', Green:'earth', White:'life', Black:'death', Gold:'dragon', Gray:'neutral', Purple:'death' };
+  const colorMap = {
+    Red:'fire', Blue:'water', Green:'earth', White:'life',
+    Black:'death', Gold:'dragon', Gray:'neutral', Purple:'death'
+  };
 
   try {
-    // Use cache if available
     if (!cardCache) {
       cardCache = await new Promise((resolve, reject) => {
         const options = {
           hostname: 'api2.splinterlands.com',
           path: '/cards/get_details',
           method: 'GET',
-          headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
+          headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+          timeout: 20000,
         };
-        const req2 = https.request(options, (response) => {
+        const r = https.request(options, (response) => {
           let data = '';
           response.on('data', chunk => data += chunk);
           response.on('end', () => {
             try { resolve(JSON.parse(data)); }
-            catch(e) { reject(e); }
+            catch(e) { reject(new Error('JSON parse failed: ' + data.slice(0,100))); }
           });
         });
-        req2.on('error', reject);
-        req2.setTimeout(20000, () => reject(new Error('timeout')));
-        req2.end();
+        r.on('timeout', () => { r.destroy(); reject(new Error('timeout')); });
+        r.on('error', reject);
+        r.end();
       });
     }
 
@@ -43,7 +45,7 @@ module.exports = async function handler(req, res) {
 
     res.status(200).json(result);
   } catch(e) {
-    cardCache = null; // reset on error
+    cardCache = null;
     res.status(200).json([]);
   }
 };
