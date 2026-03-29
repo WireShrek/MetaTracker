@@ -1,40 +1,631 @@
-const https = require('https');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splinterlands Meta Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0b0f;--bg2:#0f1118;--bg3:#141720;--border:#1c2233;--border2:#252f45;--gold:#c9a227;--gold2:#f0c84a;--text:#cdd8ef;--text2:#6b80a8;--text3:#323f5a;--fire:#ff5e3a;--water:#3ab8ff;--earth:#6bcb5f;--life:#f7e96b;--death:#b56ef5;--dragon:#ff9b3a;--neutral:#8ea8c3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 35% at 50% -5%,rgba(201,162,39,.07) 0%,transparent 60%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
+header{border-bottom:1px solid var(--border);padding:20px 0;background:linear-gradient(180deg,rgba(201,162,39,.05),transparent)}
+.hrow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.logo{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold2);text-shadow:0 0 24px rgba(240,200,74,.35)}
+.logo small{display:block;font-family:'Rajdhani',sans-serif;font-size:10px;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
+.statusbar{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s,box-shadow .3s}
+.dot.live{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.6)}
+.dot.loading{background:var(--gold);box-shadow:0 0 8px rgba(201,162,39,.6);animation:blink 1s infinite}
+.dot.err{background:var(--fire)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.dbgtoggle{font-size:11px;color:var(--text3);cursor:pointer;text-decoration:underline dotted;margin-left:6px}
+.leagues{display:flex;gap:6px;padding:18px 0 0;flex-wrap:wrap}
+.lb{padding:7px 16px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;position:relative}
+.lb::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lc,#fff);transform:scaleX(0);transition:transform .2s}
+.lb.on{color:var(--lc);border-color:var(--lc);box-shadow:0 0 10px -4px var(--lc)}
+.lb.on::after,.lb:hover::after{transform:scaleX(1)}
+.lb[data-l="champion"]{--lc:#e879a0}.lb[data-l="diamond"]{--lc:#7dd3f7}.lb[data-l="gold"]{--lc:#f0c84a}.lb[data-l="silver"]{--lc:#8ea8c3}.lb[data-l="bronze"]{--lc:#cd7f32}
+.srow{display:flex;gap:12px;padding:16px 0 0;flex-wrap:wrap}
+.spill{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 16px;min-width:110px}
+.spill .v{font-size:20px;font-weight:700;line-height:1}
+.spill .l{font-size:10px;color:var(--text2);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.prog{padding:14px 0 0;display:none}.prog.on{display:block}
+.pbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .35s;width:0}
+.ptxt{font-size:11px;color:var(--text2)}
+.dbg{background:#0d1017;border:1px solid var(--border);border-radius:5px;margin:14px 0 0;padding:10px 14px;font-size:11px;color:#5a9a5a;font-family:monospace;max-height:220px;overflow-y:auto;white-space:pre-wrap;display:none}
+.dbg.on{display:block}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-top:20px}
+.tb{padding:9px 22px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+.tb:hover{color:var(--text)}.tb.on{color:var(--gold2);border-bottom-color:var(--gold2)}
+.panels{display:flex;gap:20px;margin-top:20px;flex-wrap:wrap}
+.panel{flex:1;min-width:290px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.ph{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.pc{font-size:11px;color:var(--text2)}
+.sf{display:flex;gap:5px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;min-height:38px}
+.sfb{padding:3px 9px;border-radius:3px;border:1px solid transparent;background:transparent;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s}
+.sfb:hover{background:rgba(255,255,255,.04)}.sfb.on{border-color:currentColor;background:rgba(255,255,255,.05)}
+.cl{padding:6px 0;max-height:580px;overflow-y:auto}
+.cl::-webkit-scrollbar{width:4px}.cl::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.ci{display:flex;align-items:center;gap:10px;padding:8px 18px;transition:background .12s}
+.ci:hover{background:rgba(255,255,255,.025)}
+.rk{font-size:11px;font-weight:700;color:var(--text3);width:24px;text-align:right;flex-shrink:0}
+.rk.t3{color:var(--gold)}
+.ico{width:34px;height:34px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.ci-info{flex:1;min-width:0}
+.cn{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs{font-size:11px;color:var(--text2);margin-top:1px;display:flex;align-items:center;gap:4px}
+.sd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.bw{width:80px;flex-shrink:0}
+.bbg{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:3px}
+.bf{height:100%;border-radius:2px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.bp{font-size:12px;font-weight:700;text-align:right}
+.cu{font-size:11px;color:var(--text2);width:52px;text-align:right;flex-shrink:0}
+.st{padding:48px 20px;text-align:center;color:var(--text2);font-size:13px}
+.spin{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{background:rgba(255,94,58,.07);border:1px solid rgba(255,94,58,.2);border-radius:5px;padding:12px 16px;margin:10px 18px;font-size:12px;color:#ff8a6b;line-height:1.6}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(125,211,247,.1);color:#7dd3f7;border:1px solid rgba(125,211,247,.2);margin-left:6px;vertical-align:middle}
+.loadrow{text-align:center;padding:24px 0 0}
+.loadbtn{padding:12px 36px;background:var(--bg3);border:1px solid var(--gold);border-radius:4px;color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 0 18px -8px var(--gold)}
+.loadbtn:hover{box-shadow:0 0 28px -4px var(--gold)}.loadbtn:disabled{opacity:.5;cursor:not-allowed}
+.loadnote{font-size:11px;color:var(--text3);margin-top:7px}
+footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;font-size:11px;color:var(--text3)}
+@media(max-width:680px){.panels{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="logo">Splinterlands <small>Meta Tracker &middot; Modern Format</small></div>
+      <div class="statusbar">
+        <div class="dot" id="dot"></div>
+        <span id="stxt">Ready</span>
+        <span class="dbgtoggle" onclick="document.getElementById('dbg').classList.toggle('on')">debug</span>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="leagues">
+    <button class="lb on" data-l="champion" onclick="pick('champion')">&#9876; Champion</button>
+    <button class="lb" data-l="diamond"  onclick="pick('diamond')">&#128142; Diamond</button>
+    <button class="lb" data-l="gold"     onclick="pick('gold')">&#129351; Gold</button>
+    <button class="lb" data-l="silver"   onclick="pick('silver')">&#129352; Silver</button>
+    <button class="lb" data-l="bronze"   onclick="pick('bronze')">&#129353; Bronze</button>
+  </div>
+  <div class="srow">
+    <div class="spill"><div class="v" id="sBattles">-</div><div class="l">Battles</div></div>
+    <div class="spill"><div class="v" id="sPlayers">-</div><div class="l">Players</div></div>
+    <div class="spill"><div class="v" id="sUnits">-</div><div class="l">Unique Units</div></div>
+    <div class="spill"><div class="v" id="sTop">-</div><div class="l">Top Archon</div></div>
+  </div>
+  <div class="prog" id="prog">
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <div class="ptxt" id="ptxt">Starting...</div>
+  </div>
+  <div class="dbg" id="dbg"></div>
+  <div class="tabs">
+    <button class="tb on" id="tbBoth"   onclick="setTab('both')">Both</button>
+    <button class="tb"    id="tbArchon" onclick="setTab('archon')">Archons</button>
+    <button class="tb"    id="tbUnit"   onclick="setTab('unit')">Units</button>
+  </div>
+  <div class="panels">
+    <div class="panel" id="pArchon">
+      <div class="ph">
+        <div class="pt">Archons / Summoners <span class="badge">Modern</span></div>
+        <div class="pc" id="cArchon"></div>
+      </div>
+      <div class="sf" id="sfArchon"></div>
+      <div class="cl" id="lArchon"><div class="st"><div class="spin"></div>Pick a league and hit Load</div></div>
+    </div>
+    <div class="panel" id="pUnit">
+      <div class="ph">
+        <div class="pt">Units / Monsters <span class="badge">Modern</span></div>
+        <div class="pc" id="cUnit"></div>
+      </div>
+      <div class="sf" id="sfUnit"></div>
+      <div class="cl" id="lUnit"><div class="st"><div class="spin"></div>Pick a league and hit Load</div></div>
+    </div>
+  </div>
+  <div class="loadrow">
+    <button class="loadbtn" id="loadBtn" onclick="loadData()">Load Meta Data</button>
+    <div class="loadnote">Fetches live leaderboard &amp; battle history &mdash; Modern format only</div>
+  </div>
+</div>
+<footer><div class="wrap">Modern format only &mdash; data via Splinterlands API &mdash; Not affiliated with Splinterlands</div></footer>
 
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
+<script>
+(function(){
+'use strict';
 
-  const { ids } = req.query;
-  if (!ids) return res.status(400).json({ error: 'ids required' });
+// ================================================================
+// VERCEL API ENDPOINTS (your own serverless proxy — no CORS issues)
+// ================================================================
+var BASE = '';  // same origin — auto-resolves to https://meta-tracker-ten.vercel.app
+var API_LB      = BASE + '/api/leaderboard';
+var API_BATTLES = BASE + '/api/battles';
 
-  const wantedIds = ids.split(',').map(s => parseInt(s.trim())).filter(Boolean);
-  const colorMap = { Red:'fire', Blue:'water', Green:'earth', White:'life', Black:'death', Gold:'dragon', Gray:'neutral', Purple:'death' };
+// League ID mapping
+var LEAGUE_ID = { champion:0, diamond:1, gold:2, silver:3, bronze:4 };
 
-  return new Promise((resolve) => {
-    const options = {
-      hostname: 'api2.splinterlands.com',
-      path: '/cards/get_details',
-      method: 'GET',
-      headers: { 'Accept': 'application/json' }
-    };
+// League number -> name mapping from API response
+// league field: 0=Novice,1=Bronze,2=Silver,3=Gold,4=Diamond,5=Champion (approximately)
+// We filter by the leaderboard endpoint's leaderboard param, not the league field
 
-    const request = https.request(options, (response) => {
-      let data = '';
-      response.on('data', chunk => data += chunk);
-      response.on('end', () => {
-        try {
-          const all = JSON.parse(data);
-          const result = all
-            .filter(c => wantedIds.includes(c.id))
-            .map(c => ({ id: c.id, name: c.name, splinter: colorMap[c.color] || 'neutral' }));
-          res.status(200).json(result);
-        } catch(e) {
-          res.status(200).json([]);
+var SP_CFG = {
+  fire:   {label:'Fire',   color:'#ff5e3a', e:'F'},
+  water:  {label:'Water',  color:'#3ab8ff', e:'W'},
+  earth:  {label:'Earth',  color:'#6bcb5f', e:'E'},
+  life:   {label:'Life',   color:'#f7e96b', e:'L'},
+  death:  {label:'Death',  color:'#b56ef5', e:'D'},
+  dragon: {label:'Dragon', color:'#ff9b3a', e:'R'},
+  neutral:{label:'Neutral',color:'#8ea8c3', e:'N'},
+};
+
+// ================================================================
+// EMBEDDED CARD DATABASE
+// Covers all current Modern format cards (Rebellion + Conclave Arcana)
+// format: id -> {n: name, s: splinter}
+// ================================================================
+var CARDS = {
+"1":{"n":"Goblin Shaman","s":"fire"},"2":{"n":"Serpentine Soldier","s":"fire"},"3":{"n":"Cerberus","s":"fire"},"4":{"n":"Pit Ogre","s":"fire"},"5":{"n":"Fire Demon","s":"fire"},"6":{"n":"Kobold Miner","s":"fire"},"7":{"n":"Elemental Phoenix","s":"fire"},
+"8":{"n":"Lyanna Natura","s":"earth"},"9":{"n":"Stonesplitter Orc","s":"earth"},"10":{"n":"Flesh Golem","s":"earth"},"11":{"n":"Swamp Thing","s":"earth"},"12":{"n":"Wood Nymph","s":"earth"},"13":{"n":"Centaur","s":"earth"},"14":{"n":"Stone Golem","s":"earth"},"15":{"n":"Earth Elemental","s":"earth"},"16":{"n":"Failed Summoner","s":"earth"},"17":{"n":"Goblin Sorcerer","s":"earth"},"18":{"n":"Minotaur Warrior","s":"earth"},"19":{"n":"Mushroom Seer","s":"earth"},
+"21":{"n":"Tyrus Paladium","s":"life"},"22":{"n":"Peacebringer","s":"life"},"23":{"n":"Divine Healer","s":"life"},"24":{"n":"Silvershield Assassin","s":"life"},"25":{"n":"Silvershield Warrior","s":"life"},"26":{"n":"Feral Spirit","s":"life"},"27":{"n":"Truthspeaker","s":"life"},"28":{"n":"Armorsmith","s":"life"},"29":{"n":"Luminous Eagle","s":"life"},"30":{"n":"Temple Priest","s":"life"},
+"31":{"n":"Lone Boatman","s":"water"},"32":{"n":"Pirate Archer","s":"water"},"33":{"n":"Prismatic Energy","s":"water"},"34":{"n":"Spineback Turtle","s":"water"},"35":{"n":"Ice Pixie","s":"water"},"36":{"n":"Crustacean King","s":"water"},"37":{"n":"Kelp Initiate","s":"water"},"38":{"n":"Sea Monster","s":"water"},"39":{"n":"Medusa","s":"water"},"40":{"n":"Naga Windmaster","s":"water"},
+"41":{"n":"Undead Badger","s":"death"},"42":{"n":"Haunted Spider","s":"death"},"43":{"n":"Undead Priest","s":"death"},"44":{"n":"Skeleton Assassin","s":"death"},"45":{"n":"Twisted Jester","s":"death"},"46":{"n":"Phantasm","s":"death"},"47":{"n":"Screaming Banshee","s":"death"},"48":{"n":"Haunted Spirit","s":"death"},"49":{"n":"Dark Ferryman","s":"death"},"50":{"n":"Bone Golem","s":"death"},
+"51":{"n":"Zintar Mortalis","s":"death"},"52":{"n":"Selenia Sky","s":"dragon"},"53":{"n":"Gold Dragon","s":"dragon"},"54":{"n":"Gloridax Guardian","s":"dragon"},"55":{"n":"Dragon Jumper","s":"dragon"},"56":{"n":"Gloridax Magus","s":"dragon"},"57":{"n":"Magi Sphinx","s":"dragon"},"58":{"n":"Fire Spitter","s":"dragon"},"59":{"n":"Whelp Herder","s":"dragon"},"60":{"n":"Naga Fire Wizard","s":"dragon"},
+"61":{"n":"Pyre","s":"fire"},"62":{"n":"Living Lava","s":"fire"},"63":{"n":"Flame Imp","s":"fire"},"64":{"n":"Magma Troll","s":"fire"},"65":{"n":"Exploding Dwarf","s":"fire"},"66":{"n":"Molten Ogre","s":"fire"},"67":{"n":"Spark Pixies","s":"fire"},"68":{"n":"Fire Elemental","s":"fire"},"69":{"n":"Ferexia General","s":"fire"},
+"71":{"n":"Alric Stormbringer","s":"water"},"72":{"n":"Frozen Soldier","s":"water"},"73":{"n":"Ruler of the Seas","s":"water"},"74":{"n":"Mermaid Healer","s":"water"},"75":{"n":"Pirate Captain","s":"water"},"76":{"n":"Wave Brood","s":"water"},"77":{"n":"Feasting Seaweed","s":"water"},"78":{"n":"Torhilo the Frozen","s":"water"},"79":{"n":"Water Elemental","s":"water"},
+"80":{"n":"Biceratops","s":"earth"},"81":{"n":"Rexxie","s":"earth"},"82":{"n":"Goblin Chef","s":"earth"},"83":{"n":"Goblin Thief","s":"earth"},"84":{"n":"Khmer Princess","s":"earth"},"85":{"n":"Unicorn Mustang","s":"earth"},"86":{"n":"Grund","s":"earth"},"87":{"n":"Queen Mycelia","s":"earth"},"88":{"n":"Fungus Fiend","s":"earth"},"89":{"n":"Halfling Alchemist","s":"earth"},
+"90":{"n":"Daria Dragonscale","s":"dragon"},"91":{"n":"Manticore","s":"dragon"},"92":{"n":"Lord Arianthus","s":"neutral"},"93":{"n":"Cocatrice","s":"dragon"},"94":{"n":"Brighton Bloom","s":"dragon"},
+"95":{"n":"Kretch Tallevor","s":"fire"},"96":{"n":"Malric Inferno","s":"fire"},"97":{"n":"Chanseus the Great","s":"life"},"98":{"n":"Mother Khala","s":"life"},"99":{"n":"Delwyn Dragonscale","s":"dragon"},"100":{"n":"Valnamor","s":"water"},"101":{"n":"Owster Rotwell","s":"death"},"102":{"n":"Contessa L'ament","s":"death"},"103":{"n":"Prince Rennyn","s":"earth"},"104":{"n":"Mylor Crowling","s":"earth"},"105":{"n":"Prince Julian","s":"water"},"106":{"n":"Mimosa Nightshade","s":"death"},
+"107":{"n":"Goblin Mech","s":"neutral"},"108":{"n":"Creeping Ooze","s":"neutral"},"109":{"n":"Furious Chicken","s":"neutral"},"110":{"n":"Peaceful Giant","s":"neutral"},"111":{"n":"Prismatic Energy","s":"neutral"},"112":{"n":"Failed Summoner","s":"neutral"},"113":{"n":"Gelatinous Cube","s":"neutral"},"114":{"n":"Phantom Soldier","s":"death"},"115":{"n":"Cornealus","s":"neutral"},"116":{"n":"Kralus","s":"dragon"},"117":{"n":"Sacred Unicorn","s":"life"},"118":{"n":"Vampire","s":"death"},"119":{"n":"Dhampir Stalker","s":"death"},
+"120":{"n":"Pelacor Bandit","s":"fire"},"121":{"n":"Pelacor Conjurer","s":"life"},"122":{"n":"Pelacor Deceiver","s":"death"},"123":{"n":"Pelacor Mercenary","s":"water"},"124":{"n":"Pelacor Arbalest","s":"life"},"125":{"n":"Pelacor Descent","s":"dragon"},"126":{"n":"Uraeus","s":"neutral"},
+"127":{"n":"Djinn Apprentice","s":"fire"},"128":{"n":"Djinn Chwala","s":"dragon"},"129":{"n":"Djinn Biljka","s":"water"},"130":{"n":"Djinn Renova","s":"life"},"131":{"n":"Djinn Oshannus","s":"water"},"132":{"n":"Djinn Muraat","s":"neutral"},"133":{"n":"Djinn Inferni","s":"fire"},
+"134":{"n":"General Sloan","s":"life"},"135":{"n":"Tarsa","s":"fire"},"136":{"n":"Obsidian","s":"earth"},"137":{"n":"Kelya Frendul","s":"water"},"138":{"n":"Thaddius Brood","s":"death"},"139":{"n":"Lux Vega","s":"neutral"},"140":{"n":"Grandmaster Rathe","s":"life"},"141":{"n":"Quix the Devious","s":"dragon"},"142":{"n":"Possibilus the Wise","s":"water"},"143":{"n":"Conqueror Jacek","s":"fire"},"144":{"n":"Immortalis","s":"death"},"145":{"n":"Lily Shieldpaw","s":"earth"},"146":{"n":"Astral Entity","s":"dragon"},
+"147":{"n":"Chanseus the Great","s":"life"},"148":{"n":"Runemancer Kye","s":"fire"},"149":{"n":"Runemancer Florre","s":"earth"},"150":{"n":"Runemancer Flund","s":"water"},"151":{"n":"Runemancer Atuat","s":"death"},"152":{"n":"Runemancer Chalice","s":"life"},"153":{"n":"Runemancer Oz","s":"dragon"},
+"154":{"n":"Lobb Lowland","s":"earth"},"155":{"n":"Waka Spiritblade","s":"death"},"156":{"n":"Fernheart","s":"earth"},"157":{"n":"Runi","s":"neutral"},
+"159":{"n":"Chaos Agent","s":"neutral"},"160":{"n":"Venari Crystalsmith","s":"life"},"161":{"n":"Venari Heatsmith","s":"fire"},"162":{"n":"Venari Wavesmith","s":"water"},"163":{"n":"Venari Marksrat","s":"neutral"},"164":{"n":"Venari Seedsmith","s":"earth"},"165":{"n":"Venari Bonesmith","s":"death"},"166":{"n":"Venari Spellsmith","s":"neutral"},
+"167":{"n":"Antoid Platoon","s":"fire"},"168":{"n":"Scavo Hireling","s":"fire"},"169":{"n":"Scavo Chemist","s":"fire"},"170":{"n":"Scavo Firebolt","s":"fire"},"171":{"n":"Tenyii Striker","s":"fire"},"172":{"n":"Radiated Brute","s":"fire"},"173":{"n":"Radiated Scorcher","s":"fire"},"174":{"n":"Radiated Zombie","s":"fire"},"175":{"n":"Supply Runner","s":"fire"},"176":{"n":"Lava Launcher","s":"fire"},
+"177":{"n":"Chaos Dragon","s":"dragon"},"178":{"n":"Naga Assassin","s":"water"},"179":{"n":"Deeplurker","s":"water"},"180":{"n":"Riverboat Captain","s":"water"},"181":{"n":"Coastal Sentry","s":"water"},"182":{"n":"Diemonshark","s":"water"},"183":{"n":"Angelic Mandarin","s":"water"},"184":{"n":"Torrent Fiend","s":"water"},"185":{"n":"Axemaster","s":"water"},"186":{"n":"Tide Biter","s":"water"},"187":{"n":"Nerissa Tridawn","s":"water"},"188":{"n":"Merdaali Guardian","s":"water"},
+"189":{"n":"Swamp Spitter","s":"earth"},"190":{"n":"Goblin Psychic","s":"earth"},"191":{"n":"Mycelic Morphoid","s":"earth"},"192":{"n":"Mycelic Infantry","s":"earth"},"193":{"n":"Fungus Flinger","s":"earth"},"194":{"n":"Regal Peryton","s":"earth"},"195":{"n":"Mycelic Slipspawn","s":"earth"},"196":{"n":"Thornling","s":"earth"},"198":{"n":"Ujurak Elder","s":"earth"},
+"199":{"n":"Chaos Fiend","s":"death"},"200":{"n":"Shadowy Presence","s":"death"},"201":{"n":"Life Sapper","s":"death"},"202":{"n":"Soul Strangler","s":"death"},"203":{"n":"Cursed Windeku","s":"death"},"204":{"n":"Riftwing","s":"death"},"205":{"n":"Nightmare","s":"death"},"206":{"n":"Weirding Warrior","s":"death"},"207":{"n":"Revealer","s":"death"},"208":{"n":"Soulstorm","s":"death"},
+"209":{"n":"Silenced Summoner","s":"neutral"},"210":{"n":"Legionnaire Alvar","s":"neutral"},"211":{"n":"Xenith Monk","s":"neutral"},"212":{"n":"Xenith Archer","s":"neutral"},"213":{"n":"Xenith Flanker","s":"neutral"},"214":{"n":"Time Mage","s":"neutral"},"215":{"n":"Stitch Leech","s":"death"},"216":{"n":"Magi of Chaos","s":"neutral"},
+"218":{"n":"Hardy Stonefish","s":"water"},"219":{"n":"Swamp Worm","s":"earth"},"220":{"n":"Celestial Harpy","s":"life"},"221":{"n":"Aerial Gunner","s":"life"},"222":{"n":"Chaos Knight","s":"life"},"223":{"n":"Shieldbearer","s":"life"},"224":{"n":"Evangelist","s":"life"},"225":{"n":"Prismologist","s":"life"},"226":{"n":"Adelade Brightwing","s":"life"},"227":{"n":"Harpy","s":"life"},
+"228":{"n":"Gargoya Lion","s":"neutral"},"229":{"n":"Gargoya Devil","s":"neutral"},"230":{"n":"Baakjira","s":"water"},"231":{"n":"Kulu Swimhunter","s":"water"},"232":{"n":"Gargoya Scrapper","s":"neutral"},
+"233":{"n":"Firecaller","s":"fire"},"234":{"n":"Grum Flameblade","s":"fire"},"235":{"n":"Forgotten One","s":"fire"},"236":{"n":"Efreet Elder","s":"fire"},"237":{"n":"Chaos Elemental","s":"fire"},"238":{"n":"Pyrewatch Devil","s":"fire"},
+"239":{"n":"Harklaw","s":"death"},"240":{"n":"Crypt Beetle","s":"death"},"241":{"n":"Disintegrator","s":"neutral"},"242":{"n":"Naga Brute","s":"water"},"244":{"n":"Bila the Erdling","s":"earth"},"245":{"n":"Dumacke Exile","s":"life"},
+"246":{"n":"Octavia Shadowmeld","s":"death"},"248":{"n":"Byzantine Kitty","s":"dragon"},"249":{"n":"Scarred Llama Mage","s":"earth"},"250":{"n":"Yodin Zaku","s":"fire"},
+"252":{"n":"Junker","s":"neutral"},"253":{"n":"Spineback Wolf","s":"earth"},"254":{"n":"Flying Squid","s":"water"},"257":{"n":"Kron the Undying","s":"earth"},
+"261":{"n":"Ulundin Overseer","s":"water"},"262":{"n":"Musa Saline","s":"water"},"263":{"n":"Elven Defender","s":"life"},"264":{"n":"Scavo Warrior","s":"fire"},
+"265":{"n":"Noa the Just","s":"water"},"266":{"n":"Tura Nereen","s":"fire"},"267":{"n":"Lobb Lowland","s":"earth"},"268":{"n":"Helios Matriarch","s":"life"},"269":{"n":"Eternal Tofu","s":"neutral"},"270":{"n":"Thane Newsong","s":"death"},
+"271":{"n":"Ash Mirage","s":"neutral"},"272":{"n":"Ava the Undying","s":"neutral"},"273":{"n":"Doctor Blight","s":"neutral"},"274":{"n":"Sand Worm","s":"neutral"},"275":{"n":"Tower Griffin","s":"neutral"},"276":{"n":"Carrion Shade","s":"death"},"277":{"n":"Undead Rex","s":"death"},"278":{"n":"Fiend of Ash","s":"fire"},"279":{"n":"Arachne Weaver","s":"neutral"},"280":{"n":"Dhampir Stalker","s":"death"},"281":{"n":"Mantoid","s":"neutral"},"282":{"n":"Sniping Narwhal","s":"water"},
+"283":{"n":"Uriel the Purifier","s":"life"},"284":{"n":"Agor Longtail","s":"dragon"},"285":{"n":"Runic Skyclaw","s":"dragon"},"287":{"n":"Robo-Dragon Knight","s":"dragon"},
+"288":{"n":"Xander Foxwood","s":"earth"},"289":{"n":"Katrelba Gobson","s":"earth"},"290":{"n":"Isgald Vorst","s":"death"},"291":{"n":"Helios Matriarch","s":"life"},"292":{"n":"Bortus","s":"water"},
+"293":{"n":"Drybone Raider","s":"death"},"295":{"n":"Sorrento Felblade","s":"death"},"297":{"n":"Alva the Crusher","s":"earth"},"298":{"n":"Chimney Wallstop","s":"neutral"},
+"338":{"n":"Harklaw","s":"death"},"339":{"n":"Cursed Windeku","s":"death"},"351":{"n":"Chaos Agent","s":"neutral"},"352":{"n":"Xenith Monk","s":"neutral"},"353":{"n":"Xenith Archer","s":"neutral"},"354":{"n":"Xenith Flanker","s":"neutral"},"355":{"n":"Time Mage","s":"neutral"},"356":{"n":"Disintegrator","s":"neutral"},"357":{"n":"Legionnaire Alvar","s":"neutral"},"358":{"n":"Magi of Chaos","s":"neutral"},"359":{"n":"Gargoya Lion","s":"neutral"},"360":{"n":"Gargoya Devil","s":"neutral"},"361":{"n":"Gargoya Scrapper","s":"neutral"},"362":{"n":"Tower Griffin","s":"neutral"},"363":{"n":"Chimney Wallstop","s":"neutral"},"364":{"n":"Arachne Weaver","s":"neutral"},"365":{"n":"Mantoid","s":"neutral"},
+"366":{"n":"Antoid Platoon","s":"fire"},"367":{"n":"Tenyii Striker","s":"fire"},"368":{"n":"Radiated Brute","s":"fire"},"369":{"n":"Radiated Scorcher","s":"fire"},"370":{"n":"Radiated Zombie","s":"fire"},"371":{"n":"Supply Runner","s":"fire"},"372":{"n":"Lava Launcher","s":"fire"},"373":{"n":"Djinn Apprentice","s":"fire"},"374":{"n":"Djinn Inferni","s":"fire"},"375":{"n":"Grum Flameblade","s":"fire"},"376":{"n":"Efreet Elder","s":"fire"},"377":{"n":"Chaos Elemental","s":"fire"},"378":{"n":"Venari Heatsmith","s":"fire"},"379":{"n":"Forgotten One","s":"fire"},"380":{"n":"Pyrewatch Devil","s":"fire"},"381":{"n":"Pelacor Bandit","s":"fire"},"383":{"n":"Scavo Firebolt","s":"fire"},"384":{"n":"Scavo Hireling","s":"fire"},"385":{"n":"Scavo Chemist","s":"fire"},"386":{"n":"Scavo Warrior","s":"fire"},"387":{"n":"Firecaller","s":"fire"},
+"388":{"n":"Deeplurker","s":"water"},"389":{"n":"Riverboat Captain","s":"water"},"390":{"n":"Naga Assassin","s":"water"},"391":{"n":"Venari Wavesmith","s":"water"},"392":{"n":"Djinn Biljka","s":"water"},"393":{"n":"Djinn Oshannus","s":"water"},"394":{"n":"Torrent Fiend","s":"water"},"395":{"n":"Merdaali Guardian","s":"water"},"396":{"n":"Pelacor Mercenary","s":"water"},"398":{"n":"Venari Seedsmith","s":"earth"},"399":{"n":"Swamp Worm","s":"earth"},
+"400":{"n":"Pelacor Conjurer","s":"life"},"401":{"n":"Pelacor Arbalest","s":"life"},"402":{"n":"Venari Crystalsmith","s":"life"},"403":{"n":"Pelacor Deceiver","s":"death"},"404":{"n":"Venari Bonesmith","s":"death"},"405":{"n":"Pelacor Descent","s":"dragon"},"406":{"n":"Djinn Chwala","s":"dragon"},"407":{"n":"Agor Longtail","s":"dragon"},"408":{"n":"Runic Skyclaw","s":"dragon"},"409":{"n":"Robo-Dragon Knight","s":"dragon"},
+"410":{"n":"Uraeus","s":"neutral"},"411":{"n":"Venari Marksrat","s":"neutral"},"412":{"n":"Venari Spellsmith","s":"neutral"},"413":{"n":"Djinn Muraat","s":"neutral"},"414":{"n":"Chaos Fiend","s":"death"},"415":{"n":"Shadowy Presence","s":"death"},"416":{"n":"Revealer","s":"death"},"417":{"n":"Nightmare","s":"death"},"418":{"n":"Phantom Soldier","s":"death"},"419":{"n":"Soulstorm","s":"death"},"420":{"n":"Silenced Summoner","s":"neutral"},"421":{"n":"Doctor Blight","s":"neutral"},"422":{"n":"Sand Worm","s":"neutral"},"423":{"n":"Ava the Undying","s":"neutral"},"424":{"n":"Ash Mirage","s":"neutral"},"425":{"n":"Fiend of Ash","s":"fire"},"429":{"n":"Thornling","s":"earth"},"431":{"n":"Uriel the Purifier","s":"life"},"432":{"n":"Harpy","s":"life"}
+};
+
+// ================================================================
+// RUNTIME CARD FETCHER - fetch names for unknown card IDs
+// ================================================================
+function fetchUnknownCards(unknownIds) {
+  if(!unknownIds.length) return Promise.resolve();
+  var batches = [];
+  for(var i=0; i<unknownIds.length; i+=50){
+    batches.push(unknownIds.slice(i,i+50));
+  }
+  return Promise.all(batches.map(function(batch){
+    return fetch('/api/cards?ids='+batch.join(','))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(Array.isArray(data)){
+          data.forEach(function(c){
+            if(c && c.id && c.name){
+              CARDS[String(c.id)] = {n: c.name, s: c.splinter || 'neutral'};
+              log('Card resolved: '+c.id+' = '+c.name+' ('+c.splinter+')');
+            }
+          });
+          log('Resolved '+data.length+' card names from API');
+        } else {
+          log('Card API returned: '+JSON.stringify(data).slice(0,100));
         }
-        resolve();
+      })
+      .catch(function(e){ log('Card fetch error: '+e.message); });
+  }));
+}
+
+// ================================================================
+// STATE
+// ================================================================
+var curLeague = 'champion';
+var archonData = [], unitData = [];
+var sfA = 'all', sfU = 'all';
+var busy = false;
+var sampleLogged = false;
+
+// ================================================================
+// UI HELPERS
+// ================================================================
+function pick(l){ curLeague=l; document.querySelectorAll('.lb').forEach(function(b){b.classList.toggle('on',b.dataset.l===l);}); }
+function setTab(t){
+  ['both','archon','unit'].forEach(function(x){document.getElementById('tb'+x[0].toUpperCase()+x.slice(1)).classList.toggle('on',x===t);});
+  document.getElementById('pArchon').style.display=t==='unit'?'none':'';
+  document.getElementById('pUnit').style.display=t==='archon'?'none':'';
+}
+function setStatus(cls,msg){document.getElementById('dot').className='dot '+cls;document.getElementById('stxt').textContent=msg;}
+function setProgress(pct,msg){document.getElementById('prog').classList.add('on');document.getElementById('pfill').style.width=pct+'%';if(msg)document.getElementById('ptxt').textContent=msg;}
+function hideProgress(){document.getElementById('prog').classList.remove('on');}
+var dbgEl=document.getElementById('dbg'), dbgBuf=[];
+function log(){var s=Array.prototype.slice.call(arguments).join(' ');dbgBuf.push(s);if(dbgBuf.length>600)dbgBuf.shift();dbgEl.textContent=dbgBuf.join('\n');dbgEl.scrollTop=dbgEl.scrollHeight;}
+
+// ================================================================
+// FETCH VIA VERCEL PROXY
+// ================================================================
+function apiFetch(url){
+  return fetch(url)
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status+' '+url);
+      return r.json();
+    });
+}
+
+// ================================================================
+// STEP 1: GET LEADERBOARD (real, live, via Vercel proxy)
+// ================================================================
+function getLeaderboard(leagueId){
+  var url = API_LB + '?leaderboard=' + leagueId + '&format=modern&limit=100';
+  log('Fetching leaderboard: '+url);
+  return apiFetch(url)
+    .then(function(data){
+      var players = [];
+      if(Array.isArray(data)){
+        players = data.map(function(p){ return p.player||p.username||p.name; }).filter(Boolean);
+      }
+      log('Leaderboard: '+players.length+' players. Top 5: '+players.slice(0,5).join(', '));
+      return players;
+    });
+}
+
+// ================================================================
+// STEP 2: GET BATTLE HISTORY (via Vercel proxy)
+// Returns the full battle history response for parsing
+// ================================================================
+function getBattles(player){
+  var url = API_BATTLES + '?player=' + encodeURIComponent(player);
+  return apiFetch(url)
+    .then(function(data){
+      // Response can be array or {battles:[...]}
+      var arr = Array.isArray(data) ? data : (data && Array.isArray(data.battles) ? data.battles : []);
+
+      // Log the first successful response so we can see the structure
+      if(!sampleLogged && arr.length > 0){
+        sampleLogged = true;
+        log('=== BATTLE SAMPLE ('+player+') ===');
+        log('Count: '+arr.length);
+        log('Keys: '+Object.keys(arr[0]).join(', '));
+        // Try to find where team data is
+        var b = arr[0];
+        if(b.details) log('details type: '+typeof b.details+' | sample: '+String(b.details).slice(0,150));
+        if(b.team1) log('team1 type: '+typeof b.team1);
+        if(b.winner) log('winner: '+b.winner);
+        if(b.format) log('format: '+b.format);
+        if(b.match_type) log('match_type: '+b.match_type);
+      }
+
+      // Filter modern format only
+      arr = arr.filter(function(b){
+        var fmt = (b.format || b.match_type || '').toLowerCase();
+        // Keep if format says modern, or if no format field (older battles)
+        return !fmt || fmt === 'modern';
+      });
+
+      return arr;
+    })
+    .catch(function(e){
+      log('Battle fetch fail ('+player+'): '+e.message);
+      return [];
+    });
+}
+
+// ================================================================
+// STEP 3: PARSE BATTLE
+// UID format: "C{edition}-{card_detail_id}-{HASH}-{player_name}"
+// e.g. "C12-648-30OIKBXHGG-vraba" -> card_detail_id=648, player=vraba
+// Summoner = initiator of 'buff' action type
+// ================================================================
+function parseBattle(b){
+  var out = [];
+  var det = b.details;
+  if(typeof det === 'string'){ try{ det = JSON.parse(det); }catch(e){ det = null; } }
+  if(!det || !det.rounds || !det.rounds.length) return out;
+
+  var p1 = b.player_1 || '';
+  var p2 = b.player_2 || '';
+
+  // Parse UID: second segment is always card_detail_id
+  // Player name is everything after the 3rd hyphen
+  function parseUid(uid){
+    if(!uid || typeof uid !== 'string') return null;
+    var parts = uid.split('-');
+    // parts[0]=C12, parts[1]=648(card_id), parts[2]=HASH, parts[3+]=player
+    if(parts.length < 4) return null;
+    var cid = parts[1];
+    if(!/^[0-9]+$/.test(cid)) return null;
+    // Player is parts[3] onwards joined (handles hyphenated names)
+    var player = parts.slice(3).join('-');
+    return {cid: cid, player: player};
+  }
+
+  var summoners = {};  // player -> card_detail_id
+  var monsters = {};   // card_detail_id -> player
+
+  det.rounds.forEach(function(round){
+    (round.actions||[]).forEach(function(action){
+      var isBuff = action.type === 'buff';
+      // Process initiator (idx 0) and target (idx 1)
+      var uids = [action.initiator, action.target];
+      uids.forEach(function(uid, idx){
+        if(!uid) return;
+        var parsed = parseUid(uid);
+        if(!parsed) return;
+        var cid = parsed.cid;
+        var player = parsed.player;
+        if(!cid || cid === '0') return;
+
+        // Summoner = initiator of buff action
+        if(isBuff && idx === 0){
+          if(!summoners[player]) summoners[player] = cid;
+        } else {
+          if(!monsters[cid]) monsters[cid] = player;
+        }
       });
     });
-    request.on('error', () => { res.status(200).json([]); resolve(); });
-    request.end();
   });
-};
+
+  // Log first parse
+  if(!parseBattle._done){
+    parseBattle._done = true;
+    var s0 = (det.rounds[0] && det.rounds[0].actions && det.rounds[0].actions[0]);
+    log('PARSE DEBUG: p1='+p1+' p2='+p2);
+    log('First action: type='+( s0&&s0.type)+' init='+JSON.stringify(s0&&s0.initiator));
+    log('Summoners found: '+JSON.stringify(summoners));
+    log('Monster count: '+Object.keys(monsters).length);
+  }
+
+  // Add summoners for both players
+  [p1, p2].forEach(function(player){
+    var sid = summoners[player];
+    if(!sid) return;
+    var si = CARDS[sid];
+    out.push({type:'summoner', name: si?si.n:'Archon#'+sid, splinter: si?si.s:'neutral'});
+  });
+
+  // Add all monsters
+  var seen = {};
+  Object.keys(monsters).forEach(function(mid){
+    if(seen[mid]) return;
+    seen[mid] = true;
+    var mi = CARDS[mid];
+    out.push({type:'monster', name: mi?mi.n:'Unit#'+mid, splinter: mi?mi.s:'neutral'});
+  });
+
+  return out;
+}
+
+  // Add summoners
+  [team1.summoner, team2.summoner].forEach(function(sid){
+    if(!sid) return;
+    var si = CARDS[sid];
+    out.push({type:'summoner', name:si?si.n:'Archon#'+sid, splinter:si?si.s:'neutral'});
+  });
+
+  // Add monsters (deduplicated across teams)
+  var seen = {};
+  [team1.monsters, team2.monsters].forEach(function(mons){
+    Object.keys(mons).forEach(function(mid){
+      if(seen[mid]) return;
+      seen[mid] = true;
+      var mi = CARDS[mid];
+      out.push({type:'monster', name:mi?mi.n:'Unit#'+mid, splinter:mi?mi.s:'neutral'});
+    });
+  });
+
+  return out;
+}
+
+// ================================================================
+// MAIN LOAD
+// ================================================================
+function loadData(){
+  if(busy) return;
+  busy=true; dbgBuf=[]; sampleLogged=false; parseBattle._done=false;
+  var btn=document.getElementById('loadBtn');
+  btn.disabled=true; btn.textContent='Loading...';
+  setStatus('loading','Working...');
+  document.getElementById('dbg').classList.add('on');
+  ['lArchon','lUnit'].forEach(function(id){document.getElementById(id).innerHTML='<div class="st"><div class="spin"></div>Fetching...</div>';});
+  ['sfArchon','sfUnit'].forEach(function(id){document.getElementById(id).innerHTML='';});
+
+  var lbId = LEAGUE_ID[curLeague];
+  log('League: '+curLeague+' ('+lbId+') | Cards: '+Object.keys(CARDS).length+' embedded | Modern only');
+
+  setProgress(3, 'Fetching live leaderboard...');
+
+  getLeaderboard(lbId)
+    .then(function(players){
+      if(!players.length){
+        log('Leaderboard empty or failed');
+        players = [];
+      }
+      var total = players.length;
+      log('Processing '+total+' players...');
+
+      var counts = {summoner:{}, monster:{}};
+      var totalBattles=0, totalCards=0, done=0;
+
+      function processNext(i){
+        if(i >= total){ finish(); return; }
+        setProgress(5+Math.round(i/total*90), done+'/'+total+' players | '+totalBattles+' battles | '+totalCards+' card uses');
+        getBattles(players[i]).then(function(battles){
+          done++;
+          battles.forEach(function(b){
+            totalBattles++;
+            var cards = parseBattle(b);
+            totalCards += cards.length;
+            cards.forEach(function(c){
+              var bkt = c.type==='summoner'?'summoner':'monster';
+              if(!counts[bkt][c.name]) counts[bkt][c.name]={count:0,splinter:c.splinter};
+              counts[bkt][c.name].count++;
+            });
+          });
+          setTimeout(function(){processNext(i+1);}, 120);
+        });
+      }
+
+      processNext(0);
+
+      function finish(){
+        log('DONE | battles='+totalBattles+' cards='+totalCards+
+            ' summoners='+Object.keys(counts.summoner).length+
+            ' monsters='+Object.keys(counts.monster).length);
+
+        // Collect unknown card IDs and fetch their names
+        var unknownIds = [];
+        Object.keys(counts.summoner).concat(Object.keys(counts.monster)).forEach(function(name){
+          if(name.indexOf('Archon#') === 0) unknownIds.push(name.replace('Archon#',''));
+          if(name.indexOf('Unit#') === 0) unknownIds.push(name.replace('Unit#',''));
+        });
+        // Deduplicate
+        unknownIds = unknownIds.filter(function(v,i,a){return a.indexOf(v)===i;});
+        
+        fetchUnknownCards(unknownIds).then(function(){
+          // Re-map names now that we have card data
+          var remapped = {summoner:{}, monster:{}};
+          Object.keys(counts.summoner).forEach(function(oldName){
+            var id = oldName.replace('Archon#','');
+            var info = CARDS[id];
+            var newName = info ? info.n : oldName;
+            var sp = info ? info.s : counts.summoner[oldName].splinter;
+            if(!remapped.summoner[newName]) remapped.summoner[newName]={count:0,splinter:sp};
+            remapped.summoner[newName].count += counts.summoner[oldName].count;
+          });
+          Object.keys(counts.monster).forEach(function(oldName){
+            var id = oldName.replace('Unit#','');
+            var info = CARDS[id];
+            var newName = info ? info.n : oldName;
+            var sp = info ? info.s : counts.monster[oldName].splinter;
+            if(!remapped.monster[newName]) remapped.monster[newName]={count:0,splinter:sp};
+            remapped.monster[newName].count += counts.monster[oldName].count;
+          });
+          counts = remapped;
+          renderResults(counts, totalBattles, done);
+        });
+      }
+
+      function renderResults(counts, totalBattles, done){
+
+        archonData = Object.keys(counts.summoner).map(function(n){
+          return {name:n,count:counts.summoner[n].count,splinter:counts.summoner[n].splinter};
+        }).sort(function(a,b){return b.count-a.count;});
+
+        unitData = Object.keys(counts.monster).map(function(n){
+          return {name:n,count:counts.monster[n].count,splinter:counts.monster[n].splinter};
+        }).sort(function(a,b){return b.count-a.count;});
+
+        if(!archonData.length && !unitData.length){
+          ['lArchon','lUnit'].forEach(function(id){
+            document.getElementById(id).innerHTML='<div class="err-box">No card data found after '+totalBattles+' battles from '+done+' players.<br>Check debug log for details.</div>';
+          });
+          setStatus('err','No data — see debug');
+        } else {
+          var tA=archonData.reduce(function(s,c){return s+c.count;},0);
+          var tU=unitData.reduce(function(s,c){return s+c.count;},0);
+          renderList('lArchon',archonData,tA,sfA='all');
+          renderList('lUnit',unitData,tU,sfU='all');
+          renderFilters('sfArchon',archonData,'A');
+          renderFilters('sfUnit',unitData,'U');
+          document.getElementById('cArchon').textContent=archonData.length+' unique';
+          document.getElementById('cUnit').textContent=unitData.length+' unique';
+          document.getElementById('sBattles').textContent=totalBattles.toLocaleString();
+          document.getElementById('sPlayers').textContent=done;
+          document.getElementById('sUnits').textContent=unitData.length;
+          document.getElementById('sTop').textContent=archonData[0]?archonData[0].name:'-';
+          setStatus('live',curLeague+' modern | '+totalBattles+' battles');
+        }
+        hideProgress();
+        busy=false;
+        btn.disabled=false;
+        btn.textContent='Refresh';
+      } // end renderResults
+    })
+    .catch(function(e){
+      log('FATAL: '+e.message);
+      ['lArchon','lUnit'].forEach(function(id){
+        document.getElementById(id).innerHTML='<div class="err-box">Error: '+e.message+'</div>';
+      });
+      setStatus('err','Error');
+      hideProgress();
+      busy=false;
+      btn.disabled=false;
+      btn.textContent='Retry';
+    });
+}
+
+// ================================================================
+// RENDER
+// ================================================================
+function renderList(elId,data,total,filter){
+  var el=document.getElementById(elId);
+  var fd=filter==='all'?data:data.filter(function(d){return d.splinter===filter;});
+  if(!fd.length){el.innerHTML='<div class="st">No data for this filter</div>';return;}
+  var mx=fd[0].count;
+  el.innerHTML=fd.slice(0,60).map(function(item,i){
+    var pct=total>0?(item.count/total*100).toFixed(1):0;
+    var bar=Math.round(item.count/mx*100);
+    var sp=SP_CFG[item.splinter]||SP_CFG.neutral;
+    return '<div class="ci">'
+      +'<div class="rk'+(i<3?' t3':'')+'">'+(i+1)+'</div>'
+      +'<div class="ico" style="background:'+sp.color+'22;color:'+sp.color+'">'+sp.e+'</div>'
+      +'<div class="ci-info"><div class="cn">'+item.name+'</div>'
+      +'<div class="cs"><span class="sd" style="background:'+sp.color+'"></span>'+sp.label+'</div></div>'
+      +'<div class="bw"><div class="bbg"><div class="bf" style="width:'+bar+'%;background:'+sp.color+'70;border-right:2px solid '+sp.color+'"></div></div>'
+      +'<div class="bp" style="color:'+sp.color+'">'+pct+'%</div></div>'
+      +'<div class="cu">'+item.count.toLocaleString()+'</div></div>';
+  }).join('')+(fd.length>60?'<div style="padding:10px;font-size:11px;color:var(--text3);text-align:center">+'+(fd.length-60)+' more</div>':'');
+}
+
+function renderFilters(elId,data,prefix){
+  var el=document.getElementById(elId);
+  var counts={};
+  data.forEach(function(d){counts[d.splinter]=(counts[d.splinter]||0)+d.count;});
+  var total=data.reduce(function(s,c){return s+c.count;},0);
+  var cur=prefix==='A'?sfA:sfU;
+  var rows=[['all','All','#8ea8c3','*',total]];
+  Object.keys(SP_CFG).forEach(function(sp){if(counts[sp])rows.push([sp,SP_CFG[sp].label,SP_CFG[sp].color,SP_CFG[sp].e,counts[sp]]);});
+  el.innerHTML=rows.map(function(r){
+    return '<button class="sfb'+(cur===r[0]?' on':'')+'" style="color:'+r[2]+'" onclick="filterSp(\''+prefix+'\',\''+r[0]+'\')">'
+      +r[3]+' '+r[1]+' <span style="opacity:.45">('+r[4].toLocaleString()+')</span></button>';
+  }).join('');
+}
+
+function filterSp(prefix,sp){
+  if(prefix==='A'){sfA=sp;renderList('lArchon',archonData,archonData.reduce(function(s,c){return s+c.count;},0),sp);renderFilters('sfArchon',archonData,'A');}
+  else{sfU=sp;renderList('lUnit',unitData,unitData.reduce(function(s,c){return s+c.count;},0),sp);renderFilters('sfUnit',unitData,'U');}
+
+window.pick=pick; window.setTab=setTab; window.loadData=loadData; window.filterSp=filterSp;
+
+})();
+</script>
+</body>
+</html>
