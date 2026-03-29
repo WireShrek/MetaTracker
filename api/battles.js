@@ -6,6 +6,29 @@ export default async function handler(req, res) {
   if (!player) return res.status(400).json({ error: 'player required' });
 
   try {
+    const url = `https://api2.splinterlands.com/battle/history?player=${encodeURIComponent(player)}&limit=${limit || 50}`;
+
+    const r = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${process.env.SPL_TOKEN}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    const text = await r.text();
+    res.status(r.status).send(text);
+
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+}export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Content-Type', 'application/json');
+
+  const { player, limit } = req.query;
+  if (!player) return res.status(400).json({ error: 'player required' });
+
+  try {
     // Get player's Hive transaction history — look for sm_battle results
     // These are posted ON-CHAIN by Splinterlands after each battle ends
     const hiveRes = await fetch('https://api.hive.blog', {
