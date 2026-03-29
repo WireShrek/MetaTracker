@@ -515,7 +515,7 @@ function loadData(){
         // Deduplicate
         unknownIds = unknownIds.filter(function(v,i,a){return a.indexOf(v)===i;});
         
-        fetchUnknownCards(unknownIds).then(function(){
+        fetchUnknownCards(unknownIds).catch(function(){ return; }).then(function(){
           // Re-map names now that we have card data
           var remapped = {summoner:{}, monster:{}};
           Object.keys(counts.summoner).forEach(function(oldName){
