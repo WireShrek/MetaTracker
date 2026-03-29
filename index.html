@@ -337,8 +337,8 @@ function getBattles(player){
 
 // ================================================================
 // STEP 3: PARSE BATTLE
-// details field has: {seed, rounds:[{num, round_info, actions:[{card_detail_id, team, type, ...}]}]}
-// We extract card_detail_id + team number from every action across all rounds
+// actions have: initiator:{card_detail_id, team, type} and target:{card_detail_id, team}
+// We extract card IDs from initiator/target fields across all rounds
 // ================================================================
 function parseBattle(b){
   var out = [];
@@ -346,23 +346,30 @@ function parseBattle(b){
   if(typeof det === 'string'){ try{ det = JSON.parse(det); }catch(e){ det = null; } }
   if(!det || !det.rounds || !det.rounds.length) return out;
 
-  // Collect unique cards per team across all rounds
   var team1 = {summoner:null, monsters:{}};
   var team2 = {summoner:null, monsters:{}};
 
   det.rounds.forEach(function(round){
     (round.actions||[]).forEach(function(action){
-      var cid = String(action.card_detail_id || '');
-      if(!cid || cid === '0') return;
-      var t = String(action.team || '');
-      var isSummoner = action.type === 'summoner' || action.card_type === 'Summoner';
-      if(t === '1'){
-        if(isSummoner){ if(!team1.summoner) team1.summoner = cid; }
-        else team1.monsters[cid] = true;
-      } else if(t === '2'){
-        if(isSummoner){ if(!team2.summoner) team2.summoner = cid; }
-        else team2.monsters[cid] = true;
-      }
+      // Card info is in initiator and target objects
+      [action.initiator, action.target].forEach(function(card){
+        if(!card) return;
+        var cid = String(card.card_detail_id || card.id || '');
+        if(!cid || cid === '0' || cid === 'undefined') return;
+        var t = String(card.team || '');
+        var isSummoner = card.type === 'Summoner' || card.card_type === 'Summoner' ||
+                         card.is_summoner === true || action.type === 'buff'; // summoners usually buff
+        if(t === '1'){
+          if(isSummoner){ if(!team1.summoner) team1.summoner = cid; }
+          else team1.monsters[cid] = true;
+        } else if(t === '2'){
+          if(isSummoner){ if(!team2.summoner) team2.summoner = cid; }
+          else team2.monsters[cid] = true;
+        } else {
+          // No team field — add to monsters pool
+          team1.monsters[cid] = true;
+        }
+      });
     });
   });
 
@@ -370,7 +377,11 @@ function parseBattle(b){
   if(!parseBattle._done){
     parseBattle._done = true;
     var sample = (det.rounds[0].actions||[])[0];
-    if(sample) log('Action keys: '+Object.keys(sample).join(', '));
+    if(sample){
+      log('Action keys: '+Object.keys(sample).join(', '));
+      if(sample.initiator) log('initiator keys: '+Object.keys(sample.initiator).join(', ')+' | sample: '+JSON.stringify(sample.initiator).slice(0,150));
+      if(sample.target) log('target keys: '+Object.keys(sample.target).join(', '));
+    }
     log('team1 summoner='+team1.summoner+' monsters='+Object.keys(team1.monsters).length);
     log('team2 summoner='+team2.summoner+' monsters='+Object.keys(team2.monsters).length);
   }
@@ -401,7 +412,7 @@ function parseBattle(b){
 // ================================================================
 function loadData(){
   if(busy) return;
-  busy=true; dbgBuf=[]; sampleLogged=false;
+  busy=true; dbgBuf=[]; sampleLogged=false; parseBattle._done=false;
   var btn=document.getElementById('loadBtn');
   btn.disabled=true; btn.textContent='Loading...';
   setStatus('loading','Working...');
