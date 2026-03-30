@@ -223,40 +223,38 @@ function parseBattle(battle) {
   var summoners = {};
   var monsters = {};
 
+  // Collect all unique card IDs seen in this battle with their player
   det.rounds.forEach(function(round) {
     (round.actions || []).forEach(function(action) {
-      var isBuff = (action.type === 'buff');
-      [action.initiator, action.target].forEach(function(uid, idx) {
+      [action.initiator, action.target].forEach(function(uid) {
         var parsed = parseUid(uid);
         if (!parsed) return;
         var cid = parsed.cid;
         var player = parsed.player;
-        if (isBuff && idx === 0) {
-          // Summoner = initiator of buff action
+        var info = CARDS[cid];
+        // Use card type from DB: t='S' means summoner, anything else is monster
+        if (info && info.t === 'S') {
           if (!summoners[player]) summoners[player] = cid;
         } else {
-          // Monster - track by player so we know which team
           if (!monsters[cid]) monsters[cid] = player;
         }
       });
     });
   });
 
-  // Collect summoner card IDs to exclude from monsters list
+  // Exclude summoner IDs from monster list
   var sumIds = {};
   Object.keys(summoners).forEach(function(p) { sumIds[summoners[p]] = true; });
 
   var out = [];
-  // Add summoners for p1 and p2
   [p1, p2].forEach(function(player) {
     var sid = summoners[player];
     if (!sid) return;
     var info = CARDS[sid];
     out.push({ type: 'summoner', name: info ? info.n : 'Archon#' + sid, splinter: info ? info.s : 'neutral' });
   });
-  // Add monsters - EXCLUDE any card that was also used as a summoner
   Object.keys(monsters).forEach(function(mid) {
-    if (sumIds[mid]) return; // skip cards that are summoners
+    if (sumIds[mid]) return;
     var info = CARDS[mid];
     out.push({ type: 'monster', name: info ? info.n : 'Unit#' + mid, splinter: info ? info.s : 'neutral' });
   });
@@ -293,7 +291,7 @@ function startLoad() {
       if (Array.isArray(data) && data.length > 0) {
         data.forEach(function(c) {
           if (c && c.id && c.name) {
-            CARDS[String(c.id)] = { n: c.name, s: c.splinter || 'neutral' };
+            CARDS[String(c.id)] = { n: c.name, s: c.splinter || 'neutral', t: c.type || 'M' };
           }
         });
         log('Cards loaded: ' + Object.keys(CARDS).length);
