@@ -261,12 +261,23 @@ function parseBattle(battle) {
   // Debug first battle
   if (!parseBattle._done) {
     parseBattle._done = true;
-    log('parseBattle: summoners=' + JSON.stringify(summoners) + ' monsterCount=' + Object.keys(monsters).length);
-    // Log a few monster IDs and their types
-    var monSample = Object.keys(monsters).slice(0,3);
-    monSample.forEach(function(mid) {
-      log('  card ' + mid + ': ' + (CARDS[mid] ? CARDS[mid].n + ' t=' + CARDS[mid].t : 'NOT IN DB'));
+    // Log ALL unique card IDs seen in this battle with their DB type
+    var allSeen = {};
+    det.rounds.forEach(function(r){
+      (r.actions||[]).forEach(function(a){
+        [a.initiator, a.target].forEach(function(uid){
+          var p = parseUid(uid);
+          if(p) allSeen[p.cid] = true;
+        });
+      });
     });
+    var allIds = Object.keys(allSeen);
+    log('ALL card IDs in battle: ' + allIds.join(','));
+    allIds.forEach(function(cid){
+      var info = CARDS[cid];
+      log('  ' + cid + ': ' + (info ? info.n + ' t=' + info.t : 'NOT IN DB'));
+    });
+    log('summoners found: ' + JSON.stringify(summoners));
   }
   return out;
 }
@@ -304,14 +315,12 @@ function startLoad() {
             CARDS[String(c.id)] = { n: c.name, s: c.splinter || 'neutral', t: c.type || 'M' };
           }
         });
-        log('Cards loaded: ' + Object.keys(CARDS).length);
-        // Debug: count summoners vs monsters
-        var sCount = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'S'; }).length;
-        var mCount = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'M'; }).length;
-        log('Summoners in DB: ' + sCount + ' | Monsters: ' + mCount);
-        // Log a few summoner IDs
-        var sumSample = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'S'; }).slice(0,5);
-        log('Sample summoner IDs: ' + sumSample.map(function(k){ return k+'='+CARDS[k].n; }).join(', '));
+        // Debug: show unique card types in DB
+        var typeMap = {};
+        Object.keys(CARDS).forEach(function(k){ var t = CARDS[k].t; typeMap[t] = (typeMap[t]||0)+1; });
+        log('Cards loaded: ' + Object.keys(CARDS).length + ' | Types: ' + JSON.stringify(typeMap));
+        var sumSample = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'S'; }).slice(0,3);
+        log('Sample S-type: ' + sumSample.map(function(k){ return k+'='+CARDS[k].n; }).join(', '));
       } else {
         log('Card load returned empty - using embedded cards only');
       }
