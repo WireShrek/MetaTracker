@@ -129,7 +129,7 @@ footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;fo
   </div>
   <div class="loadrow">
     <button class="loadbtn" id="loadBtn" onclick="startLoad()">Load Meta Data</button>
-    <div class="loadnote">Modern format only &mdash; live leaderboard data</div>
+    <div class="loadnote">Loads current league &mdash; switch tiers to compare &mdash; <span id="cacheNote" style="color:var(--gold)"></span></div>
   </div>
 </div>
 <footer><div class="wrap">Modern format only &mdash; Not affiliated with Splinterlands</div></footer>
@@ -150,6 +150,7 @@ var SP = {
 var CARDS = {};
 var archonData = [];
 var unitData = [];
+var leagueCache = {}; // stores {archonData, unitData, battles, players} per league
 var sfA = 'all';
 var sfU = 'all';
 var busy = false;
@@ -160,6 +161,36 @@ function pickLeague(l) {
   document.querySelectorAll('.lb').forEach(function(b) {
     b.classList.toggle('on', b.dataset.l === l);
   });
+  // Show cached data for this league if available
+  if (leagueCache[l]) {
+    var cached = leagueCache[l];
+    archonData = cached.archonData;
+    unitData = cached.unitData;
+    sfA = 'all'; sfU = 'all';
+    var tA = archonData.reduce(function(s,c){return s+c.count;},0);
+    var tU = unitData.reduce(function(s,c){return s+c.count;},0);
+    renderList('lArchon', archonData, tA, 'all');
+    renderList('lUnit', unitData, tU, 'all');
+    renderFilters('sfArchon', archonData, 'A');
+    renderFilters('sfUnit', unitData, 'U');
+    document.getElementById('cArchon').textContent = archonData.length + ' unique';
+    document.getElementById('cUnit').textContent = unitData.length + ' unique';
+    document.getElementById('sBattles').textContent = cached.battles.toLocaleString();
+    document.getElementById('sPlayers').textContent = cached.players;
+    document.getElementById('sUnits').textContent = unitData.length;
+    document.getElementById('sTop').textContent = archonData[0] ? archonData[0].name : '-';
+    setStatus('live', l + ' modern | ' + cached.battles + ' battles (cached)');
+  } else {
+    // No cache - show empty state
+    ['lArchon','lUnit'].forEach(function(id) {
+      document.getElementById(id).innerHTML = '<div class="st">Hit <b>Load Meta Data</b> to load ' + l + ' league</div>';
+    });
+    document.getElementById('sBattles').textContent = '-';
+    document.getElementById('sPlayers').textContent = '-';
+    document.getElementById('sUnits').textContent = '-';
+    document.getElementById('sTop').textContent = '-';
+    setStatus('', 'Ready');
+  }
 }
 
 function pickTab(t) {
@@ -404,6 +435,16 @@ function startLoad() {
       document.getElementById('sUnits').textContent   = unitData.length;
       document.getElementById('sTop').textContent     = archonData[0] ? archonData[0].name : '-';
       setStatus('live', curLeague + ' modern | ' + totalBattles + ' battles');
+      // Cache results for this league
+      // Update cache note
+      var cached = Object.keys(leagueCache);
+      document.getElementById('cacheNote').textContent = cached.length + ' league' + (cached.length>1?'s':'') + ' loaded: ' + cached.join(', ');
+      leagueCache[curLeague] = {
+        archonData: archonData,
+        unitData: unitData,
+        battles: totalBattles,
+        players: done
+      };
     }
 
     hideProgress();
