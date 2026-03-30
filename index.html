@@ -194,6 +194,27 @@ function log(msg) {
   dbgEl.scrollTop = dbgEl.scrollHeight;
 }
 
+// ---- MODERN ARCHON NAMES (hardcoded for reliable detection) ----
+var MODERN_ARCHON_NAMES = new Set([
+  // Rebellion Archons
+  "Dolfar Darflak","Brewmaster Abraxas","Prunda Undervesch","Chuul Jujinchi",
+  "Zeddica","Prophet Rosa","Reklah","Nomos","Underboss Fabino","Avina of the Wolf",
+  "Akane","Risqruel Drath","Elias Max Pruitt","Cryptic","Lorkus","Nidhoggr",
+  "Eternal Tofu","Kesryn the Myth Hunter","Xawi the Mystic",
+  // Conclave Arcana Archons
+  "Gorgug the Endless","Kavor Skarn","Fithe Bladestone","Razi Clanktrap",
+  "Bella Ratajowlski","Kaylia Silverleaf","Sheng Xiao","Loving the Moo",
+  "Elowen Sylphie","Hanv","Captain Frankie",
+  // Rebellion Summoners (still used in modern)
+  "Tarsa","Obsidian","General Sloan","Kelya Frendul","Thaddius Brood",
+  "Grandmaster Rathe","Possibilus the Wise","Immortalis","Lily Shieldpaw",
+  "Astral Entity","Conqueror Jacek","Byzantine Kitty","Quix the Devious",
+  "Scarred Llama Mage","Yodin Zaku","Kron the Undying","Lux Vega",
+  "Helios Matriarch","Camila Sungazer","Ilthain","Dax Paragon","Tyrcio",
+  "Gorthax","Zyriel","Arcana Shepherd","Tasohi Drakamoto","Lobb Lowland",
+  "Isgald Vorst","Noa the Just","Tura Nereen","Thane Newsong"
+]);
+
 // ---- PARSE UID ----
 // UID format: "C12-648-HASH-playername"
 // card_detail_id is always parts[1]
@@ -232,8 +253,10 @@ function parseBattle(battle) {
         var cid = parsed.cid;
         var player = parsed.player;
         var info = CARDS[cid];
-        // Use card type from DB: t='S' means summoner, anything else is monster
-        if (info && info.t === 'S') {
+        // Check if summoner: by DB type OR by hardcoded modern archon name list
+        var isSummoner = (info && info.t === 'S') ||
+                         (info && MODERN_ARCHON_NAMES.has(info.n));
+        if (isSummoner) {
           if (!summoners[player]) summoners[player] = cid;
         } else {
           if (!monsters[cid]) monsters[cid] = player;
@@ -452,9 +475,14 @@ function renderList(elId, data, total, filter) {
     var pct = total > 0 ? (item.count / total * 100).toFixed(1) : 0;
     var bar = Math.round(item.count / mx * 100);
     var sp = SP[item.splinter] || SP.neutral;
+    // Card image from Splinterlands CDN
+    var imgName = item.name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g,'');
+    var imgUrl = 'https://d36mxiodymuqjm.cloudfront.net/card_art/' + imgName + '.jpg';
     return '<div class="ci">'
       + '<div class="rk' + (i < 3 ? ' t3' : '') + '">' + (i + 1) + '</div>'
-      + '<div class="ico" style="background:' + sp.color + '22;color:' + sp.color + '">' + sp.e + '</div>'
+      + '<div class="ico" style="background:' + sp.color + '22;border-color:' + sp.color + '44;overflow:hidden;padding:0">'
+      + '<img src="' + imgUrl + '" style="width:34px;height:34px;object-fit:cover;object-position:top center" onerror="this.parentNode.innerHTML='<span style=color:' + sp.color + ';font-size:13px;font-weight:700>' + sp.e + '</span>'">'
+      + '</div>'
       + '<div class="ci-info"><div class="cn">' + item.name + '</div>'
       + '<div class="cs"><span class="sd" style="background:' + sp.color + '"></span>' + sp.label + '</div></div>'
       + '<div class="bw"><div class="bbg"><div class="bf" style="width:' + bar + '%;background:' + sp.color + '70;border-right:2px solid ' + sp.color + '"></div></div>'
