@@ -283,13 +283,8 @@ function parseBattle(battle) {
     log('summoners found: ' + JSON.stringify(summoners));
     // Show full details structure to find team data
     log('details top keys: ' + Object.keys(det).join(', '));
-    var r0 = det.rounds && det.rounds[0];
-    if (r0) {
-      log('round0 keys: ' + Object.keys(r0).join(', '));
-      var acts = r0.actions || [];
-      log('round0 first action: ' + JSON.stringify(acts[0]).slice(0,200));
-      log('round0 last action: ' + JSON.stringify(acts[acts.length-1]).slice(0,200));
-    }
+    if (det.team1) log('team1: ' + JSON.stringify(det.team1).slice(0,300));
+    if (det.team2) log('team2: ' + JSON.stringify(det.team2).slice(0,300));
   }
   return out;
 }
