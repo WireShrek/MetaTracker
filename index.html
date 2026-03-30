@@ -227,65 +227,39 @@ function parseBattle(battle) {
   if (typeof det === 'string') {
     try { det = JSON.parse(det); } catch(e) { return []; }
   }
-  if (!det || !det.rounds) return [];
+  if (!det) return [];
 
-  var p1 = battle.player_1 || '';
-  var p2 = battle.player_2 || '';
-  var summoners = {};
-  var monsters = {};
+  var out = [];
 
-  // Collect ALL unique card IDs across all actions
-  var allCards = {};
-  det.rounds.forEach(function(round) {
-    (round.actions || []).forEach(function(action) {
-      [action.initiator, action.target].forEach(function(uid) {
-        var parsed = parseUid(uid);
-        if (!parsed) return;
-        if (!allCards[parsed.cid]) allCards[parsed.cid] = parsed.player;
-      });
+  // Get summoner directly from det.team1.summoner and det.team2.summoner
+  [det.team1, det.team2].forEach(function(team) {
+    if (!team) return;
+    // Add summoner
+    var s = team.summoner;
+    if (s && s.card_detail_id) {
+      var sid = String(s.card_detail_id);
+      if (SUMMONER_IDS.has(parseInt(sid))) {
+        var info = CARDS[sid];
+        out.push({ type: 'summoner', name: info ? info.n : 'Archon#'+sid, splinter: info ? info.s : 'neutral' });
+      }
+    }
+    // Add monsters
+    (team.monsters || []).forEach(function(m) {
+      if (!m || !m.card_detail_id) return;
+      var mid = String(m.card_detail_id);
+      var info = CARDS[mid];
+      out.push({ type: 'monster', name: info ? info.n : 'Unit#'+mid, splinter: info ? info.s : 'neutral' });
     });
   });
 
-  // Split into summoners vs monsters using SUMMONER_IDS
-  Object.keys(allCards).forEach(function(cid) {
-    var player = allCards[cid];
-    if (SUMMONER_IDS.has(parseInt(cid))) {
-      if (!summoners[player]) summoners[player] = cid;
-    } else {
-      if (!monsters[cid]) monsters[cid] = player;
-    }
-  });
-
-  // Exclude summoner IDs from monster list
-  var sumIds = {};
-  Object.keys(summoners).forEach(function(p) { sumIds[summoners[p]] = true; });
-
-  var out = [];
-  [p1, p2].forEach(function(player) {
-    var sid = summoners[player];
-    if (!sid) return;
-    var info = CARDS[sid];
-    out.push({ type: 'summoner', name: info ? info.n : 'Archon#' + sid, splinter: info ? info.s : 'neutral' });
-  });
-  Object.keys(monsters).forEach(function(mid) {
-    if (sumIds[mid]) return;
-    var info = CARDS[mid];
-    out.push({ type: 'monster', name: info ? info.n : 'Unit#' + mid, splinter: info ? info.s : 'neutral' });
-  });
   // Debug first battle
   if (!parseBattle._done) {
     parseBattle._done = true;
-    log('ALL card IDs in battle: ' + Object.keys(allCards).join(','));
-    Object.keys(allCards).forEach(function(cid){
-      var info = CARDS[cid];
-      log('  ' + cid + ': ' + (info ? info.n + ' t=' + info.t : 'NOT IN DB'));
-    });
-    log('summoners found: ' + JSON.stringify(summoners));
-    // Show full details structure to find team data
-    log('details top keys: ' + Object.keys(det).join(', '));
-    if (det.team1) log('team1: ' + JSON.stringify(det.team1).slice(0,300));
-    if (det.team2) log('team2: ' + JSON.stringify(det.team2).slice(0,300));
+    if (det.team1) log('team1 summoner id=' + (det.team1.summoner && det.team1.summoner.card_detail_id) + ' monsters=' + (det.team1.monsters||[]).length);
+    if (det.team2) log('team2 summoner id=' + (det.team2.summoner && det.team2.summoner.card_detail_id) + ' monsters=' + (det.team2.monsters||[]).length);
+    log('out cards: ' + out.length);
   }
+
   return out;
 }
 
@@ -366,22 +340,6 @@ function startLoad() {
               var fmt = (b.format || '').toLowerCase();
               return !fmt || fmt === 'modern';
             });
-            if (!window._battleLogged && battles.length > 0) {
-              window._battleLogged = true;
-              var b0 = battles[0];
-              log('BATTLE TOP KEYS: ' + Object.keys(b0).join(', '));
-              // Check details for team info
-              var det0 = b0.details;
-              if (typeof det0 === 'string') { try { det0 = JSON.parse(det0); } catch(e) {} }
-              if (det0) log('DETAILS KEYS: ' + Object.keys(det0).join(', '));
-              // Check all string fields for card IDs
-              Object.keys(b0).forEach(function(k) {
-                var v = b0[k];
-                if (typeof v === 'string' && v.includes('C12-') || typeof v === 'string' && v.includes('C11-')) {
-                  log('FIELD WITH UID: ' + k + ' = ' + v.slice(0,150));
-                }
-              });
-            }
             battles.forEach(function(b) {
               totalBattles++;
               parseBattle(b).forEach(function(card) {
