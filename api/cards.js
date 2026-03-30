@@ -47,7 +47,8 @@ module.exports = async function handler(req, res) {
     ).map(c => ({
       id: c.id,
       name: c.name,
-      splinter: colorMap[c.color] || 'neutral'
+      splinter: colorMap[c.color] || 'neutral',
+      type: c.type === 'Summoner' ? 'S' : 'M'
     }));
 
     res.status(200).json(result);
