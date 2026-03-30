@@ -342,6 +342,9 @@ function startLoad() {
       // Handle both array and {players:[...]} response formats
       var arr = Array.isArray(data) ? data : (data && Array.isArray(data.players) ? data.players : []);
       players = arr.map(function(p) { return p.player || p.username || p.name; }).filter(Boolean);
+      // Log first player's league to verify correct leaderboard ID
+      var firstPlayer = Array.isArray(data) ? data[0] : (data && data.players && data.players[0]);
+      if (firstPlayer) log('First player: ' + firstPlayer.player + ' rating=' + firstPlayer.rating + ' league=' + firstPlayer.league + ' max_league=' + firstPlayer.max_league);
       log('Players: ' + players.length + (players.length > 0 ? ' | First: ' + players[0] : ''));
       if (players.length === 0) throw new Error('No players found on leaderboard');
       return players;
