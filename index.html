@@ -194,25 +194,13 @@ function log(msg) {
   dbgEl.scrollTop = dbgEl.scrollHeight;
 }
 
-// ---- MODERN ARCHON NAMES (hardcoded for reliable detection) ----
-var MODERN_ARCHON_NAMES = new Set([
-  // Rebellion Archons
-  "Dolfar Darflak","Brewmaster Abraxas","Prunda Undervesch","Chuul Jujinchi",
-  "Zeddica","Prophet Rosa","Reklah","Nomos","Underboss Fabino","Avina of the Wolf",
-  "Akane","Risqruel Drath","Elias Max Pruitt","Cryptic","Lorkus","Nidhoggr",
-  "Eternal Tofu","Kesryn the Myth Hunter","Xawi the Mystic",
-  // Conclave Arcana Archons
-  "Gorgug the Endless","Kavor Skarn","Fithe Bladestone","Razi Clanktrap",
-  "Bella Ratajowlski","Kaylia Silverleaf","Sheng Xiao","Loving the Moo",
-  "Elowen Sylphie","Hanv","Captain Frankie",
-  // Rebellion Summoners (still used in modern)
-  "Tarsa","Obsidian","General Sloan","Kelya Frendul","Thaddius Brood",
-  "Grandmaster Rathe","Possibilus the Wise","Immortalis","Lily Shieldpaw",
-  "Astral Entity","Conqueror Jacek","Byzantine Kitty","Quix the Devious",
-  "Scarred Llama Mage","Yodin Zaku","Kron the Undying","Lux Vega",
-  "Helios Matriarch","Camila Sungazer","Ilthain","Dax Paragon","Tyrcio",
-  "Gorthax","Zyriel","Arcana Shepherd","Tasohi Drakamoto","Lobb Lowland",
-  "Isgald Vorst","Noa the Just","Tura Nereen","Thane Newsong"
+// ---- SUMMONER IDs (from cards/get_details API, type=S) ----
+// Rebellion archons: 637-647, 653-658
+// Conclave Arcana archons: 796-802, 809, 818, 827, 836, 845, 870, 914, 920, 925, 971
+var SUMMONER_IDS = new Set([
+  637,638,639,640,641,642,643,644,645,646,647,
+  653,654,655,656,657,658,
+  796,797,798,799,800,801,802,809,818,827,836,845,870,914,920,925,971
 ]);
 
 // ---- PARSE UID ----
@@ -253,9 +241,8 @@ function parseBattle(battle) {
         var cid = parsed.cid;
         var player = parsed.player;
         var info = CARDS[cid];
-        // Check if summoner: by DB type OR by hardcoded modern archon name list
-        var isSummoner = (info && info.t === 'S') ||
-                         (info && MODERN_ARCHON_NAMES.has(info.n));
+        // Check if summoner by ID (most reliable) or DB type
+        var isSummoner = SUMMONER_IDS.has(parseInt(cid)) || (info && info.t === 'S');
         if (isSummoner) {
           if (!summoners[player]) summoners[player] = cid;
         } else {
@@ -325,10 +312,7 @@ function startLoad() {
   var lbId = LEAGUE_IDS[curLeague];
   log('League: ' + curLeague + ' (id=' + lbId + ')');
 
-  // Step 1: load all card names
-  setProgress(3, 'Loading card database...');
-  log('Loading cards from /api/cards?ids=all');
-
+  // Load cards in background (non-blocking)
   fetch('/api/cards?ids=all')
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -338,30 +322,24 @@ function startLoad() {
             CARDS[String(c.id)] = { n: c.name, s: c.splinter || 'neutral', t: c.type || 'M' };
           }
         });
-        // Debug: show unique card types in DB
-        var typeMap = {};
-        Object.keys(CARDS).forEach(function(k){ var t = CARDS[k].t; typeMap[t] = (typeMap[t]||0)+1; });
-        log('Cards loaded: ' + Object.keys(CARDS).length + ' | Types: ' + JSON.stringify(typeMap));
-        var sumSample = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'S'; }).slice(0,3);
-        log('Sample S-type: ' + sumSample.map(function(k){ return k+'='+CARDS[k].n; }).join(', '));
-      } else {
-        log('Card load returned empty - using embedded cards only');
+        log('Cards loaded: ' + Object.keys(CARDS).length);
       }
     })
-    .catch(function(e) {
-      log('Card load error: ' + e.message + ' - continuing anyway');
-    })
-    .then(function() {
-      // Step 2: get leaderboard
-      setProgress(8, 'Fetching leaderboard...');
-      return fetch('/api/leaderboard?leaderboard=' + lbId + '&format=modern&limit=100')
-        .then(function(r) { return r.json(); });
+    .catch(function(e) { log('Card load failed (non-fatal): ' + e.message); });
+
+  // Step 2: fetch leaderboard immediately
+  setProgress(5, 'Fetching leaderboard...');
+  fetch('/api/leaderboard?leaderboard=' + lbId + '&format=modern&limit=100')
+    .then(function(r) { return r.text(); })
+    .then(function(txt) {
+      try { return JSON.parse(txt); }
+      catch(e) { throw new Error('Leaderboard parse failed: ' + txt.slice(0,80)); }
     })
     .then(function(data) {
       var players = [];
-      if (Array.isArray(data)) {
-        players = data.map(function(p) { return p.player || p.username || p.name; }).filter(Boolean);
-      }
+      // Handle both array and {players:[...]} response formats
+      var arr = Array.isArray(data) ? data : (data && Array.isArray(data.players) ? data.players : []);
+      players = arr.map(function(p) { return p.player || p.username || p.name; }).filter(Boolean);
       log('Players: ' + players.length + (players.length > 0 ? ' | First: ' + players[0] : ''));
       if (players.length === 0) throw new Error('No players found on leaderboard');
       return players;
@@ -466,6 +444,63 @@ function startLoad() {
 }
 
 // ---- RENDER ----
+
+// Card image lookup - maps card name to CDN image URL
+var CARD_IMGS = {
+  // Conclave Arcana Archons
+  "Gorgug the Endless": "conclave/Gorgug%20the%20Endless_lv4.png",
+  "Kavor Skarn": "conclave/Kavor%20Skarn_lv4.png",
+  "Fithe Bladestone": "conclave/Fithe%20Bladestone_lv8.png",
+  "Razi Clanktrap": "conclave/Razi%20Clanktrap_lv8.png",
+  "Bella Ratajowlski": "conclave/Bella%20Ratajowlski_lv8.png",
+  "Kaylia Silverleaf": "conclave/Kaylia%20Silverleaf_lv8.png",
+  "Sheng Xiao": "conclave/Sheng%20Xiao_lv4.png",
+  "Loving the Moo": "conclave/Loving%20the%20Moo_lv4.png",
+  "Elowen Sylphie": "conclave/Elowen%20Sylphie_lv4.png",
+  "Hanv": "conclave/Hanv_lv4.png",
+  "Captain Frankie": "conclave/Captain%20Frankie_lv4.png",
+  "Brave the Bull": "conclave/Brave%20the%20Bull_lv4.png",
+  // Rebellion Archons
+  "Lorkus": "rebellion/Lorkus_lv4.png",
+  "Nidhoggr": "rebellion/Nidhoggr_lv4.png",
+  "Cryptic": "rebellion/Cryptic_lv4.png",
+  "Akane": "rebellion/Akane_lv4.png",
+  "Eternal Tofu": "rebellion/Eternal%20Tofu_lv4.png",
+  "Risqruel Drath": "rebellion/Risqruel%20Drath_lv4.png",
+  "Elias Max Pruitt": "rebellion/Elias%20Max%20Pruitt_lv4.png",
+  "Nomos": "rebellion/Nomos_lv4.png",
+  "Reklah": "rebellion/Reklah_lv4.png",
+  "Prophet Rosa": "rebellion/Prophet%20Rosa_lv4.png",
+  "Avina of the Wolf": "rebellion/Avina%20of%20the%20Wolf_lv4.png",
+  "Dolfar Darflak": "rebellion/Dolfar%20Darflak_lv4.png",
+  "Brewmaster Abraxas": "rebellion/Brewmaster%20Abraxas_lv4.png",
+  "Prunda Undervesch": "rebellion/Prunda%20Undervesch_lv4.png",
+  "Chuul Jujinchi": "rebellion/Chuul%20Jujinchi_lv4.png",
+  "Zeddica": "rebellion/Zeddica_lv4.png",
+  "Underboss Fabino": "rebellion/Underboss%20Fabino_lv4.png",
+  // Rebellion common summoners
+  "Tarsa": "rebellion/Tarsa_lv6.png",
+  "Obsidian": "rebellion/Obsidian_lv6.png",
+  "General Sloan": "rebellion/General%20Sloan_lv6.png",
+  "Kelya Frendul": "rebellion/Kelya%20Frendul_lv6.png",
+  "Thaddius Brood": "rebellion/Thaddius%20Brood_lv6.png",
+  "Grandmaster Rathe": "rebellion/Grandmaster%20Rathe_lv4.png",
+  "Possibilus the Wise": "rebellion/Possibilus%20the%20Wise_lv4.png",
+  "Immortalis": "rebellion/Immortalis_lv4.png",
+  "Lily Shieldpaw": "rebellion/Lily%20Shieldpaw_lv4.png",
+  "Astral Entity": "rebellion/Astral%20Entity_lv4.png",
+  "Conqueror Jacek": "rebellion/Conqueror%20Jacek_lv4.png",
+  "Byzantine Kitty": "rebellion/Byzantine%20Kitty_lv4.png",
+  "Quix the Devious": "rebellion/Quix%20the%20Devious_lv4.png",
+  "Scarred Llama Mage": "rebellion/Scarred%20Llama%20Mage_lv4.png",
+  "Yodin Zaku": "rebellion/Yodin%20Zaku_lv4.png",
+  "Lux Vega": "rebellion/Lux%20Vega_lv4.png"
+};
+var CDN = "https://d36mxiodymuqjm.cloudfront.net/cards_by_level/";
+function getCardImg(name) {
+  return CARD_IMGS[name] ? CDN + CARD_IMGS[name] : null;
+}
+
 function renderList(elId, data, total, filter) {
   var el = document.getElementById(elId);
   var fd = (filter === 'all') ? data : data.filter(function(d) { return d.splinter === filter; });
@@ -476,13 +511,9 @@ function renderList(elId, data, total, filter) {
     var bar = Math.round(item.count / mx * 100);
     var sp = SP[item.splinter] || SP.neutral;
     // Card image from Splinterlands CDN
-    var imgName = item.name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g,'');
-    var imgUrl = 'https://d36mxiodymuqjm.cloudfront.net/card_art/' + imgName + '.jpg';
     return '<div class="ci">'
       + '<div class="rk' + (i < 3 ? ' t3' : '') + '">' + (i + 1) + '</div>'
-      + '<div class="ico" style="background:' + sp.color + '22;border-color:' + sp.color + '44;overflow:hidden;padding:0">'
-      + '<img src="' + imgUrl + '" style="width:34px;height:34px;object-fit:cover;object-position:top center" onerror="this.parentNode.innerHTML='<span style=color:' + sp.color + ';font-size:13px;font-weight:700>' + sp.e + '</span>'">'
-      + '</div>'
+      + '<div class="ico" style="background:' + sp.color + '22;color:' + sp.color + '">' + sp.e + '</div>'
       + '<div class="ci-info"><div class="cn">' + item.name + '</div>'
       + '<div class="cs"><span class="sd" style="background:' + sp.color + '"></span>' + sp.label + '</div></div>'
       + '<div class="bw"><div class="bbg"><div class="bf" style="width:' + bar + '%;background:' + sp.color + '70;border-right:2px solid ' + sp.color + '"></div></div>'
