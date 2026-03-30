@@ -137,7 +137,7 @@ footer{padding:28px 0 16px;border-top:1px solid var(--border);margin-top:36px;fo
 <script>
 // ---- STATE ----
 var curLeague = 'champion';
-var LEAGUE_IDS = { champion:0, diamond:1, gold:2, silver:3, bronze:4 };
+var LEAGUE_IDS = { champion:0, diamond:1, gold:2, silver:2, bronze:2 };
 var SP = {
   fire:   { label:'Fire',    color:'#ff5e3a', e:'F' },
   water:  { label:'Water',   color:'#3ab8ff', e:'W' },
@@ -283,14 +283,6 @@ function parseBattle(battle) {
     });
   });
 
-  // Debug first battle
-  if (!parseBattle._done) {
-    parseBattle._done = true;
-    if (det.team1) log('team1 summoner id=' + (det.team1.summoner && det.team1.summoner.card_detail_id) + ' monsters=' + (det.team1.monsters||[]).length);
-    if (det.team2) log('team2 summoner id=' + (det.team2.summoner && det.team2.summoner.card_detail_id) + ' monsters=' + (det.team2.monsters||[]).length);
-    log('out cards: ' + out.length);
-  }
-
   return out;
 }
 
@@ -342,9 +334,6 @@ function startLoad() {
       // Handle both array and {players:[...]} response formats
       var arr = Array.isArray(data) ? data : (data && Array.isArray(data.players) ? data.players : []);
       players = arr.map(function(p) { return p.player || p.username || p.name; }).filter(Boolean);
-      // Log first player's league to verify correct leaderboard ID
-      var firstPlayer = Array.isArray(data) ? data[0] : (data && data.players && data.players[0]);
-      if (firstPlayer) log('First player: ' + firstPlayer.player + ' rating=' + firstPlayer.rating + ' league=' + firstPlayer.league + ' max_league=' + firstPlayer.max_league);
       log('Players: ' + players.length + (players.length > 0 ? ' | First: ' + players[0] : ''));
       if (players.length === 0) throw new Error('No players found on leaderboard');
       return players;
@@ -369,6 +358,7 @@ function startLoad() {
           .then(function(r) { return r.json(); })
           .then(function(data) {
             var battles = Array.isArray(data) ? data : (data && Array.isArray(data.battles) ? data.battles : []);
+            if (done === 0 && battles.length === 0) log('First player battles=0, raw: ' + JSON.stringify(data).slice(0,100));
             // Modern only
             battles = battles.filter(function(b) {
               var fmt = (b.format || '').toLowerCase();
@@ -385,11 +375,11 @@ function startLoad() {
             done++;
           })
           .catch(function(e) {
-            log('Battle error (' + players[i] + '): ' + e.message);
+            if (done < 3) log('Battle error (' + players[i] + '): ' + e.message);
             done++;
           })
           .then(function() {
-            setTimeout(function() { next(i + 1); }, 100);
+            setTimeout(function() { next(i + 1); }, 150);
           });
       }
 
