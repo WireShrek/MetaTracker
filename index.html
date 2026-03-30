@@ -194,12 +194,14 @@ function log(msg) {
   dbgEl.scrollTop = dbgEl.scrollHeight;
 }
 
-// ---- SUMMONER IDs (from cards/get_details API, type=S) ----
-// Rebellion archons: 637-647, 653-658
-// Conclave Arcana archons: 796-802, 809, 818, 827, 836, 845, 870, 914, 920, 925, 971
+// ---- MODERN-ONLY SUMMONER IDs ----
+// ONLY Rebellion (637-647, 653-658) + Conclave Arcana (796-802, 809, 818, 827, 836, 845, 870, 914, 920, 925, 971)
+// Excludes ALL wild summoners (Byzantine Kitty=291, Lily Shieldpaw=554, etc)
 var SUMMONER_IDS = new Set([
+  // Rebellion Archons
   637,638,639,640,641,642,643,644,645,646,647,
   653,654,655,656,657,658,
+  // Conclave Arcana Archons
   796,797,798,799,800,801,802,809,818,827,836,845,870,914,920,925,971
 ]);
 
@@ -241,8 +243,8 @@ function parseBattle(battle) {
         var cid = parsed.cid;
         var player = parsed.player;
         var info = CARDS[cid];
-        // Check if summoner by ID (most reliable) or DB type
-        var isSummoner = SUMMONER_IDS.has(parseInt(cid)) || (info && info.t === 'S');
+        // ONLY use hardcoded modern summoner IDs - ignore DB type (includes wild summoners)
+        var isSummoner = SUMMONER_IDS.has(parseInt(cid));
         if (isSummoner) {
           if (!summoners[player]) summoners[player] = cid;
         } else {
