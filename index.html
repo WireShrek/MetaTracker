@@ -258,6 +258,16 @@ function parseBattle(battle) {
     var info = CARDS[mid];
     out.push({ type: 'monster', name: info ? info.n : 'Unit#' + mid, splinter: info ? info.s : 'neutral' });
   });
+  // Debug first battle
+  if (!parseBattle._done) {
+    parseBattle._done = true;
+    log('parseBattle: summoners=' + JSON.stringify(summoners) + ' monsterCount=' + Object.keys(monsters).length);
+    // Log a few monster IDs and their types
+    var monSample = Object.keys(monsters).slice(0,3);
+    monSample.forEach(function(mid) {
+      log('  card ' + mid + ': ' + (CARDS[mid] ? CARDS[mid].n + ' t=' + CARDS[mid].t : 'NOT IN DB'));
+    });
+  }
   return out;
 }
 
@@ -295,6 +305,13 @@ function startLoad() {
           }
         });
         log('Cards loaded: ' + Object.keys(CARDS).length);
+        // Debug: count summoners vs monsters
+        var sCount = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'S'; }).length;
+        var mCount = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'M'; }).length;
+        log('Summoners in DB: ' + sCount + ' | Monsters: ' + mCount);
+        // Log a few summoner IDs
+        var sumSample = Object.keys(CARDS).filter(function(k){ return CARDS[k].t === 'S'; }).slice(0,5);
+        log('Sample summoner IDs: ' + sumSample.map(function(k){ return k+'='+CARDS[k].n; }).join(', '));
       } else {
         log('Card load returned empty - using embedded cards only');
       }
