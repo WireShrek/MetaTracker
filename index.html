@@ -234,24 +234,26 @@ function parseBattle(battle) {
   var summoners = {};
   var monsters = {};
 
-  // Collect all unique card IDs seen in this battle with their player
+  // Collect ALL unique card IDs across all actions
+  var allCards = {};
   det.rounds.forEach(function(round) {
     (round.actions || []).forEach(function(action) {
       [action.initiator, action.target].forEach(function(uid) {
         var parsed = parseUid(uid);
         if (!parsed) return;
-        var cid = parsed.cid;
-        var player = parsed.player;
-        var info = CARDS[cid];
-        // ONLY use hardcoded modern summoner IDs - ignore DB type (includes wild summoners)
-        var isSummoner = SUMMONER_IDS.has(parseInt(cid));
-        if (isSummoner) {
-          if (!summoners[player]) summoners[player] = cid;
-        } else {
-          if (!monsters[cid]) monsters[cid] = player;
-        }
+        if (!allCards[parsed.cid]) allCards[parsed.cid] = parsed.player;
       });
     });
+  });
+
+  // Split into summoners vs monsters using SUMMONER_IDS
+  Object.keys(allCards).forEach(function(cid) {
+    var player = allCards[cid];
+    if (SUMMONER_IDS.has(parseInt(cid))) {
+      if (!summoners[player]) summoners[player] = cid;
+    } else {
+      if (!monsters[cid]) monsters[cid] = player;
+    }
   });
 
   // Exclude summoner IDs from monster list
@@ -273,23 +275,21 @@ function parseBattle(battle) {
   // Debug first battle
   if (!parseBattle._done) {
     parseBattle._done = true;
-    // Log ALL unique card IDs seen in this battle with their DB type
-    var allSeen = {};
-    det.rounds.forEach(function(r){
-      (r.actions||[]).forEach(function(a){
-        [a.initiator, a.target].forEach(function(uid){
-          var p = parseUid(uid);
-          if(p) allSeen[p.cid] = true;
-        });
-      });
-    });
-    var allIds = Object.keys(allSeen);
-    log('ALL card IDs in battle: ' + allIds.join(','));
-    allIds.forEach(function(cid){
+    log('ALL card IDs in battle: ' + Object.keys(allCards).join(','));
+    Object.keys(allCards).forEach(function(cid){
       var info = CARDS[cid];
       log('  ' + cid + ': ' + (info ? info.n + ' t=' + info.t : 'NOT IN DB'));
     });
     log('summoners found: ' + JSON.stringify(summoners));
+    // Show full details structure to find team data
+    log('details top keys: ' + Object.keys(det).join(', '));
+    var r0 = det.rounds && det.rounds[0];
+    if (r0) {
+      log('round0 keys: ' + Object.keys(r0).join(', '));
+      var acts = r0.actions || [];
+      log('round0 first action: ' + JSON.stringify(acts[0]).slice(0,200));
+      log('round0 last action: ' + JSON.stringify(acts[acts.length-1]).slice(0,200));
+    }
   }
   return out;
 }
@@ -371,6 +371,22 @@ function startLoad() {
               var fmt = (b.format || '').toLowerCase();
               return !fmt || fmt === 'modern';
             });
+            if (!window._battleLogged && battles.length > 0) {
+              window._battleLogged = true;
+              var b0 = battles[0];
+              log('BATTLE TOP KEYS: ' + Object.keys(b0).join(', '));
+              // Check details for team info
+              var det0 = b0.details;
+              if (typeof det0 === 'string') { try { det0 = JSON.parse(det0); } catch(e) {} }
+              if (det0) log('DETAILS KEYS: ' + Object.keys(det0).join(', '));
+              // Check all string fields for card IDs
+              Object.keys(b0).forEach(function(k) {
+                var v = b0[k];
+                if (typeof v === 'string' && v.includes('C12-') || typeof v === 'string' && v.includes('C11-')) {
+                  log('FIELD WITH UID: ' + k + ' = ' + v.slice(0,150));
+                }
+              });
+            }
             battles.forEach(function(b) {
               totalBattles++;
               parseBattle(b).forEach(function(card) {
